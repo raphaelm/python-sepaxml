@@ -1,10 +1,8 @@
 import xml.etree.cElementTree as ET
-import random
-import sys
-import hashlib
-import time
 import datetime
 from xml.sax.saxutils import escape
+
+from sepadd.utils import int_to_decimal_str, make_id, decimal_str_to_int, make_msg_id
 
 
 class PySepaDD(object):
@@ -22,8 +20,7 @@ class PySepaDD(object):
         self._config = None             # Will contain the config file.
         self._xml = None                # Will contain the final XML file.
         self._batches = dict()          # Will contain the SEPA batches.
-        self._batch_totals = dict()     # Will contain the total amount to
-                                        # debit per batch for checksum total.
+        self._batch_totals = dict()     # Will contain the total amount to debit per batch for checksum total.
 
         config_result = self.check_config(config)
         if config_result:
@@ -45,7 +42,7 @@ class PySepaDD(object):
         required = ["name", "IBAN", "BIC", "batch", "creditor_id", "currency"]
 
         for config_item in required:
-            if not config_item in config:
+            if config_item not in config:
                 validation += config_item.upper() + "_MISSING "
 
         if not validation:
@@ -87,18 +84,18 @@ class PySepaDD(object):
         """
         # Validate the payment
         validation = self.check_payment(payment)
-        if not validation == True:
+        if validation is not True:
             raise Exception('Payment did not validate: ' + validation)
 
         # Get the CstmrDrctDbtInitnNode
         if not self._config['batch']:
             # Start building the non batch payment
             PmtInf_nodes = self._create_PmtInf_node()
-            PmtInf_nodes['PmtInfIdNode'].text = self._make_id()
+            PmtInf_nodes['PmtInfIdNode'].text = make_id(self._config['name'])
             PmtInf_nodes['PmtMtdNode'].text = "DD"
             PmtInf_nodes['BtchBookgNode'].text = "false"
             PmtInf_nodes['NbOfTxsNode'].text = "1"
-            PmtInf_nodes['CtrlSumNode'].text = self.int_to_decimal_str(
+            PmtInf_nodes['CtrlSumNode'].text = int_to_decimal_str(
                                                payment['amount'])
             PmtInf_nodes['Cd_SvcLvl_Node'].text = "SEPA"
             PmtInf_nodes['Cd_LclInstrm_Node'].text = "CORE"
@@ -123,8 +120,7 @@ class PySepaDD(object):
 
         TX_nodes = self._create_TX_node(bic)
         TX_nodes['InstdAmtNode'].set("Ccy", self._config['currency'])
-        TX_nodes['InstdAmtNode'].text = self.int_to_decimal_str(
-                                        payment['amount'])
+        TX_nodes['InstdAmtNode'].text = int_to_decimal_str(payment['amount'])
 
         TX_nodes['MndtIdNode'].text = payment['mandate_id']
         TX_nodes['DtOfSgntrNode'].text = payment['mandate_date']
@@ -134,7 +130,7 @@ class PySepaDD(object):
         TX_nodes['Nm_Dbtr_Node'].text = escape(payment['name'])
         TX_nodes['IBAN_DbtrAcct_Node'].text = payment['IBAN']
         TX_nodes['UstrdNode'].text = escape(payment['description'])
-        TX_nodes['EndToEndIdNode'].text = self._make_id()
+        TX_nodes['EndToEndIdNode'].text = make_id(self._config['name'])
 
         if self._config['batch']:
             self._add_batch(TX_nodes, payment)
@@ -155,7 +151,7 @@ class PySepaDD(object):
         for ctrl_sum in self._xml.iter('CtrlSum'):
             if ctrl_sum.text is None:
                 continue
-            ctrl_sum_total += self.decimal_str_to_int(ctrl_sum.text)
+            ctrl_sum_total += decimal_str_to_int(ctrl_sum.text)
 
         for nb_of_txs in self._xml.iter('NbOfTxs'):
             if nb_of_txs.text is None:
@@ -166,11 +162,11 @@ class PySepaDD(object):
         GrpHdr_node = CstmrDrctDbtInitn_node.find('GrpHdr')
         CtrlSum_node = GrpHdr_node.find('CtrlSum')
         NbOfTxs_node = GrpHdr_node.find('NbOfTxs')
-        CtrlSum_node.text = self.int_to_decimal_str(ctrl_sum_total)
+        CtrlSum_node.text = int_to_decimal_str(ctrl_sum_total)
         NbOfTxs_node.text = str(nb_of_txs_total)
 
-        #Prepending the XML version is hacky, but cElementTree only offers this
-        #automatically if you write to a file, which we don't necessarily want.
+        # Prepending the XML version is hacky, but cElementTree only offers this
+        # automatically if you write to a file, which we don't necessarily want.
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + ET.tostring(
                self._xml, "utf-8")
 
@@ -208,9 +204,8 @@ class PySepaDD(object):
         Nm_node = ET.Element("Nm")
 
         # Add data to some header nodes.
-        MsgId_node.text = self._make_msg_id()
-        CreDtTm_node.text = datetime.datetime.now()\
-                            .strftime('%Y-%m-%dT%H:%M:%S')
+        MsgId_node.text = make_msg_id()
+        CreDtTm_node.text = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         Nm_node.text = self._config['name']
 
         # Append the nodes
@@ -426,7 +421,7 @@ class PySepaDD(object):
         for batch_meta, batch_nodes in self._batches.items():
             batch_meta_split = batch_meta.split("::")
             PmtInf_nodes = self._create_PmtInf_node()
-            PmtInf_nodes['PmtInfIdNode'].text = self._make_id()
+            PmtInf_nodes['PmtInfIdNode'].text = make_id(self._config['name'])
             PmtInf_nodes['PmtMtdNode'].text = "DD"
             PmtInf_nodes['BtchBookgNode'].text = "true"
             PmtInf_nodes['Cd_SvcLvl_Node'].text = "SEPA"
@@ -446,8 +441,7 @@ class PySepaDD(object):
             PmtInf_nodes['PrtryNode'].text = "SEPA"
 
             PmtInf_nodes['NbOfTxsNode'].text = str(len(batch_nodes))
-            PmtInf_nodes['CtrlSumNode'].text = self.int_to_decimal_str(
-                                               self._batch_totals[batch_meta])
+            PmtInf_nodes['CtrlSumNode'].text = int_to_decimal_str(self._batch_totals[batch_meta])
 
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['PmtInfIdNode'])
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['PmtMtdNode'])
@@ -499,65 +493,3 @@ class PySepaDD(object):
 
             CstmrDrctDbtInitn_node = self._xml.find('CstmrDrctDbtInitn')
             CstmrDrctDbtInitn_node.append(PmtInf_nodes['PmtInfNode'])
-
-    def _get_rand_string(self, size):
-        """
-        Create a random hex string of certain size, to be used for ids.
-        @param size: integer definining length of random string (max 40).
-        @return: a random hex string of length size, will never return more
-        than 40 chars.
-        """
-        random_number = random.randint(0, sys.maxint)   # Weak random, but it
-                                                        # is not used for any
-                                                        # crypto
-        random_string = hashlib.sha1(str(random_number)).hexdigest()
-        return random_string[:size]
-
-    def _make_msg_id(self):
-        """
-        Create a semi random message id, by using 12 char random hex string and
-        a timestamp.
-        @return: string consisting of timestamp, -, random value
-        """
-        random_string = self._get_rand_string(12)
-        timestamp = time.strftime("%d%m%Y%I%M%S")
-        msg_id = timestamp + "-" + random_string
-        return msg_id
-
-    def _make_id(self):
-        """
-        Create a random id combined with the creditor name.
-        @return string consisting of name (truncated at 22 chars), -,
-        12 char rand hex string.
-        """
-        random = self._get_rand_string(12)
-        name = self._config['name']
-        if len(name) <= 22:
-            name = name[:22]
-        return name + "-" + random
-
-    def int_to_decimal_str(self, integer):
-        """
-        Helper to convert integers (representing cents) into decimal currency
-        string. WARNING: DO NOT TRY TO DO THIS BY DIVISION, FLOATING POINT
-        ERRORS ARE NO FUN IN FINANCIAL SYSTEMS.
-        @param integer The amount in cents
-        @return string The amount in currency with full stop decimal separator
-        """
-        int_string = str(integer)
-        if len(int_string) < 2:
-            return "0." + int_string.zfill(2)
-        else:
-            return int_string[:-2] + "." + int_string[-2:]
-
-    def decimal_str_to_int(self, decimal_string):
-        """
-        Helper to decimal currency string into integers (cents).
-        WARNING: DO NOT TRY TO DO THIS BY CONVERSION AND MULTIPLICATION,
-        FLOATING POINT ERRORS ARE NO FUN IN FINANCIAL SYSTEMS.
-        @param string The amount in currency with full stop decimal separator
-        @return integer The amount in cents
-        """
-        int_string = decimal_string.replace('.', '')
-        int_string = int_string.lstrip('0')
-        return int(int_string)
