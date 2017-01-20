@@ -5,7 +5,7 @@ from xml.sax.saxutils import escape
 from sepadd.utils import int_to_decimal_str, make_id, decimal_str_to_int, make_msg_id
 
 
-class PySepaDD(object):
+class SepaDD(object):
     """
     This class creates a Sepa Direct Debit XML File.
     """
@@ -25,8 +25,6 @@ class PySepaDD(object):
         config_result = self.check_config(config)
         if config_result:
             self._config = config
-        else:
-            raise Exception("Config file did not validate. " + config_result)
 
         self._prepare_document()
         self._create_header()
@@ -48,7 +46,7 @@ class PySepaDD(object):
         if not validation:
             return True
         else:
-            return validation
+            raise Exception("Config file did not validate. " + validation)
 
     def check_payment(self, payment):
         """
@@ -57,7 +55,6 @@ class PySepaDD(object):
         @return: True if valid, error string if invalid paramaters where
         encountered.
         """
-
         validation = ""
 
         if not isinstance(payment['amount'], int):
@@ -74,7 +71,7 @@ class PySepaDD(object):
         if validation == "":
             return True
         else:
-            return validation
+            raise Exception('Payment did not validate: ' + validation)
 
     def add_payment(self, payment):
         """
@@ -83,9 +80,7 @@ class PySepaDD(object):
         @raise exception: when payment is invalid
         """
         # Validate the payment
-        validation = self.check_payment(payment)
-        if validation is not True:
-            raise Exception('Payment did not validate: ' + validation)
+        self.check_payment(payment)
 
         # Get the CstmrDrctDbtInitnNode
         if not self._config['batch']:
@@ -167,7 +162,7 @@ class PySepaDD(object):
 
         # Prepending the XML version is hacky, but cElementTree only offers this
         # automatically if you write to a file, which we don't necessarily want.
-        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + ET.tostring(
+        return b"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + ET.tostring(
                self._xml, "utf-8")
 
     def _prepare_document(self):
