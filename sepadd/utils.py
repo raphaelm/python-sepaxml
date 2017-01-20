@@ -2,7 +2,6 @@ import hashlib
 import random
 import time
 
-
 try:
     random = random.SystemRandom()
     using_sysrandom = True

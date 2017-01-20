@@ -1,0 +1,15 @@
+language: python
+sudo: false
+python:
+    - "3.4"
+    - "3.5"
+    - "3.6"
+install:
+    - pip install -U pip wheel requirements_dev.txt
+script:
+    - flake8 sepadd tests
+    - isort -rc -c sepadd tests
+    - pytest tests/
+cache:
+    directories:
+        - $HOME/.cache/pip

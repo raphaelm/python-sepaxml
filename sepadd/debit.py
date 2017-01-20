@@ -2,9 +2,8 @@ import datetime
 import xml.etree.ElementTree as ET
 from xml.sax.saxutils import escape
 
-
-
-from sepadd.utils import int_to_decimal_str, make_id, decimal_str_to_int, make_msg_id
+from sepadd.utils import (decimal_str_to_int, int_to_decimal_str, make_id,
+                          make_msg_id)
 
 
 class SepaDD(object):
