@@ -24,4 +24,4 @@ Original Author: Congressus
 
 License: MIT
 
-.. _PySebaDD: https://github.com/congressus/PySepaDD
+.. _PySepaDD: https://github.com/congressus/PySepaDD
