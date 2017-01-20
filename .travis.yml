@@ -9,7 +9,7 @@ install:
 script:
     - flake8 sepadd tests
     - isort -rc -c sepadd tests
-    - pytest tests/
+    - pytest -v tests/
 cache:
     directories:
         - $HOME/.cache/pip
