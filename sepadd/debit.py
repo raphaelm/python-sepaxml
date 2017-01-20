@@ -1,6 +1,12 @@
-import xml.etree.cElementTree as ET
 import datetime
 from xml.sax.saxutils import escape
+
+try:
+    from lxml import etree as ET
+except ImportError:
+    import xml.etree.ElementTree as ET
+
+
 
 from sepadd.utils import int_to_decimal_str, make_id, decimal_str_to_int, make_msg_id
 
