@@ -15,7 +15,7 @@ except:
     long_description = ''
 
 setup(
-    name='fints',
+    name='sepadd',
     version=version,
     description='Python SEPA Direct Debit XML implementation',
     long_description=long_description,
