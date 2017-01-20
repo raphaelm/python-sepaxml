@@ -1,5 +1,6 @@
 import datetime
 import xml.etree.ElementTree as ET
+from collections import OrderedDict
 from xml.sax.saxutils import escape
 
 from sepadd.utils import (decimal_str_to_int, int_to_decimal_str, make_id,
@@ -18,10 +19,10 @@ class SepaDD(object):
         @param param: The config dict.
         @raise exception: When the config file is invalid.
         """
-        self._config = None             # Will contain the config file.
-        self._xml = None                # Will contain the final XML file.
-        self._batches = dict()          # Will contain the SEPA batches.
-        self._batch_totals = dict()     # Will contain the total amount to debit per batch for checksum total.
+        self._config = None                    # Will contain the config file.
+        self._xml = None                       # Will contain the final XML file.
+        self._batches = OrderedDict()          # Will contain the SEPA batches.
+        self._batch_totals = OrderedDict()     # Will contain the total amount to debit per batch for checksum total.
 
         config_result = self.check_config(config)
         if config_result:
