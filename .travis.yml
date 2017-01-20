@@ -5,7 +5,8 @@ python:
     - "3.5"
     - "3.6"
 install:
-    - pip install -U pip wheel requirements_dev.txt
+    - pip install -U pip wheel
+    - pip install -r requirements_dev.txt
 script:
     - flake8 sepadd tests
     - isort -rc -c sepadd tests
