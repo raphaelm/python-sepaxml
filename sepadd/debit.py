@@ -1,10 +1,6 @@
 import datetime
+import xml.etree.ElementTree as ET
 from xml.sax.saxutils import escape
-
-try:
-    from lxml import etree as ET
-except ImportError:
-    import xml.etree.ElementTree as ET
 
 
 
