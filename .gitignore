@@ -4,5 +4,4 @@ dist/
 *.egg-info
 env
 .idea/
-test*.py
 
