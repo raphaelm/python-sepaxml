@@ -54,7 +54,7 @@ def make_id(name):
     12 char rand hex string.
     """
     r = get_rand_string(12)
-    if len(name) <= 22:
+    if len(name) > 22:
         name = name[:22]
     return name + "-" + r
 
