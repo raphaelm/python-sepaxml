@@ -18,4 +18,5 @@ def clean_ids(xmlout):
     pat1 = re.compile(b'-[0-9a-f]{12}')
     pat2 = re.compile(b'<MsgId>[^<]*</MsgId>')
     pat3 = re.compile(b'\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d')
-    return pat3.sub(b'0000-00-00T00:00:00', pat2.sub(b'<MsgId></MsgId>', pat1.sub(b'-000000000000', xmlout)))
+    pat4 = re.compile(b'\d\d\d\d-\d\d-\d\d')
+    return pat4.sub(b'0000-00-00', pat3.sub(b'0000-00-00T00:00:00', pat2.sub(b'<MsgId></MsgId>', pat1.sub(b'-000000000000', xmlout))))
