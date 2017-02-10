@@ -4,12 +4,12 @@ python:
     - "3.5"
     - "3.6"
 install:
-    - pip install -U pip wheel
+    - pip install -U pip wheel coverage codecov
     - pip install -r requirements_dev.txt
 script:
     - flake8 sepadd tests
     - isort -rc -c sepadd tests
-    - pytest -v tests/
+    - coverage run -m py.test -v tests/ && codecov
 cache:
     directories:
         - $HOME/.cache/pip
