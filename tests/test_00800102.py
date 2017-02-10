@@ -14,9 +14,9 @@ def sdd():
         "IBAN": "NL50BANK1234567890",
         "BIC": "BANKNL2A",
         "batch": True,
-        "creditor_id": "000000",
+        "creditor_id": "DE26ZZZ00000000000",
         "currency": "EUR"
-    })
+    }, schema="pain.008.001.02")
 
 
 SAMPLE_RESULT = b"""
@@ -66,7 +66,7 @@ SAMPLE_RESULT = b"""
         <Id>
           <PrvtId>
             <Othr>
-              <Id>000000</Id>
+              <Id>DE26ZZZ00000000000</Id>
               <SchmeNm>
                 <Prtry>SEPA</Prtry>
               </SchmeNm>
@@ -138,7 +138,7 @@ SAMPLE_RESULT = b"""
         <Id>
           <PrvtId>
             <Othr>
-              <Id>000000</Id>
+              <Id>DE26ZZZ00000000000</Id>
               <SchmeNm>
                 <Prtry>SEPA</Prtry>
               </SchmeNm>
@@ -207,5 +207,5 @@ def test_two_debits(sdd):
     sdd.add_payment(payment1)
     sdd.add_payment(payment2)
     xmlout = sdd.export()
-    xmlpretty = validate_xml(xmlout)
+    xmlpretty = validate_xml(xmlout, "pain.008.001.02")
     assert clean_ids(xmlpretty.strip()) == clean_ids(SAMPLE_RESULT.strip())

@@ -12,7 +12,7 @@ class SepaDD(object):
     This class creates a Sepa Direct Debit XML File.
     """
 
-    def __init__(self, config):
+    def __init__(self, config, schema="pain.008.002.02"):
         """
         Constructor. Checks the config, prepares the document and
         builds the header.
@@ -23,6 +23,7 @@ class SepaDD(object):
         self._xml = None                       # Will contain the final XML file.
         self._batches = OrderedDict()          # Will contain the SEPA batches.
         self._batch_totals = OrderedDict()     # Will contain the total amount to debit per batch for checksum total.
+        self.schema = schema
 
         config_result = self.check_config(config)
         if config_result:
@@ -173,11 +174,11 @@ class SepaDD(object):
         """
         self._xml = ET.Element("Document")
         self._xml.set("xmlns",
-                      "urn:iso:std:iso:20022:tech:xsd:pain.008.001.02")
+                      "urn:iso:std:iso:20022:tech:xsd:" + self.schema)
         self._xml.set("xmlns:xsi",
                       "http://www.w3.org/2001/XMLSchema-intance")
         ET.register_namespace("",
-                              "urn:iso:std:iso:20022:tech:xsd:pain.008.001.02")
+                              "urn:iso:std:iso:20022:tech:xsd:" + self.schema)
         ET.register_namespace("xsi",
                               "http://www.w3.org/2001/XMLSchema-intance")
         CstmrDrctDbtInitn_node = ET.Element("CstmrDrctDbtInitn")
@@ -317,8 +318,8 @@ class SepaDD(object):
 
         PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ChrgBrNode'])
 
-        PmtInf_nodes['CdtrSchmeIdNode'].append(
-                                        PmtInf_nodes['Nm_CdtrSchmeId_Node'])
+        if self.schema == 'pain.008.001.02':
+            PmtInf_nodes['CdtrSchmeIdNode'].append(PmtInf_nodes['Nm_CdtrSchmeId_Node'])
         PmtInf_nodes['OthrNode'].append(PmtInf_nodes['Id_Othr_Node'])
         PmtInf_nodes['SchmeNmNode'].append(PmtInf_nodes['PrtryNode'])
         PmtInf_nodes['OthrNode'].append(PmtInf_nodes['SchmeNmNode'])
@@ -432,8 +433,7 @@ class SepaDD(object):
                 PmtInf_nodes['BIC_CdtrAgt_Node'].text = self._config['BIC']
 
             PmtInf_nodes['ChrgBrNode'].text = "SLEV"
-            PmtInf_nodes['Nm_CdtrSchmeId_Node'].text = escape(
-                                                       self._config['name'])
+            PmtInf_nodes['Nm_CdtrSchmeId_Node'].text = escape(self._config['name'])
             PmtInf_nodes['Id_Othr_Node'].text = self._config['creditor_id']
             PmtInf_nodes['PrtryNode'].text = "SEPA"
 
@@ -473,8 +473,8 @@ class SepaDD(object):
 
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ChrgBrNode'])
 
-            PmtInf_nodes['CdtrSchmeIdNode'].append(
-                                           PmtInf_nodes['Nm_CdtrSchmeId_Node'])
+            if self.schema == 'pain.008.001.02':
+                PmtInf_nodes['CdtrSchmeIdNode'].append(PmtInf_nodes['Nm_CdtrSchmeId_Node'])
             PmtInf_nodes['OthrNode'].append(PmtInf_nodes['Id_Othr_Node'])
             PmtInf_nodes['SchmeNmNode'].append(PmtInf_nodes['PrtryNode'])
             PmtInf_nodes['OthrNode'].append(PmtInf_nodes['SchmeNmNode'])

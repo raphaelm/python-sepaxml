@@ -4,8 +4,8 @@ import re
 from lxml import etree
 
 
-def validate_xml(xmlout):
-    with open(os.path.join(os.path.dirname(__file__), 'pain.008.001.02.xsd'), 'rb') as schema_file:
+def validate_xml(xmlout, schema):
+    with open(os.path.join(os.path.dirname(__file__), schema + '.xsd'), 'rb') as schema_file:
         schema_xml = schema_file.read()
     schema_root = etree.XML(schema_xml)
     schema = etree.XMLSchema(schema_root)

@@ -13,7 +13,10 @@ Thanks for your work!
 Limitations
 -----------
 
-* Currently, only SEPA PAIN.008.001.02 is supported.
+Supported standards:
+
+* SEPA PAIN.008.001.02
+* SEPA PAIN.008.002.02
 
 Usage
 -----
@@ -30,7 +33,7 @@ Example::
         "creditor_id": "000000",  # supplied by your bank or financial authority
         "currency": "EUR"  # ISO 4217
     }
-    sepa = SepaDD(config)
+    sepa = SepaDD(config, scheme="pain.008.002.02")
 
     payment = {
         "name": "Test von Testenstein",
