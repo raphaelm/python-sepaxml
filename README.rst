@@ -37,7 +37,7 @@ Example::
         "IBAN": "NL50BANK1234567890",
         "BIC": "BANKNL2A",
         "batch": True,
-        "creditor_id": "000000",  # supplied by your bank or financial authority
+        "creditor_id": "DE26ZZZ00000000000",  # supplied by your bank or financial authority
         "currency": "EUR"  # ISO 4217
     }
     sepa = SepaDD(config, scheme="pain.008.002.02")
