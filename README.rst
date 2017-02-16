@@ -28,9 +28,12 @@ Supported standards:
 Usage
 -----
 
-Example::
+Example:
+
+.. code:: python
 
     from sepadd import SepaDD
+    import datetime
 
     config = {
         "name": "Test von Testenstein",
@@ -40,7 +43,7 @@ Example::
         "creditor_id": "DE26ZZZ00000000000",  # supplied by your bank or financial authority
         "currency": "EUR"  # ISO 4217
     }
-    sepa = SepaDD(config, scheme="pain.008.002.02")
+    sepa = SepaDD(config, schema="pain.008.002.02")
 
     payment = {
         "name": "Test von Testenstein",
