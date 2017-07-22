@@ -24,6 +24,7 @@ class SepaDD(object):
         self._batches = OrderedDict()          # Will contain the SEPA batches.
         self._batch_totals = OrderedDict()     # Will contain the total amount to debit per batch for checksum total.
         self.schema = schema
+        self.msg_id = make_msg_id()
 
         config_result = self.check_config(config)
         if config_result:
@@ -202,7 +203,7 @@ class SepaDD(object):
         Nm_node = ET.Element("Nm")
 
         # Add data to some header nodes.
-        MsgId_node.text = make_msg_id()
+        MsgId_node.text = self.msg_id
         CreDtTm_node.text = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         Nm_node.text = self._config['name']
 
