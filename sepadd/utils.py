@@ -1,8 +1,7 @@
 import hashlib
 import random
-import time
-
 import re
+import time
 
 try:
     random = random.SystemRandom()
