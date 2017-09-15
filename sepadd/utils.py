@@ -2,6 +2,8 @@ import hashlib
 import random
 import time
 
+import re
+
 try:
     random = random.SystemRandom()
     using_sysrandom = True
@@ -53,6 +55,7 @@ def make_id(name):
     @return string consisting of name (truncated at 22 chars), -,
     12 char rand hex string.
     """
+    name = re.sub(r'[^a-zA-Z0-9]', '', name)
     r = get_rand_string(12)
     if len(name) > 22:
         name = name[:22]

@@ -1,7 +1,6 @@
 import datetime
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
-from xml.sax.saxutils import escape
 
 from sepadd.utils import (decimal_str_to_int, int_to_decimal_str, make_id,
                           make_msg_id)
@@ -100,15 +99,14 @@ class SepaDD(object):
             PmtInf_nodes['Cd_LclInstrm_Node'].text = "CORE"
             PmtInf_nodes['SeqTpNode'].text = payment['type']
             PmtInf_nodes['ReqdColltnDtNode'].text = payment['collection_date']
-            PmtInf_nodes['Nm_Cdtr_Node'].text = escape(self._config['name'])
+            PmtInf_nodes['Nm_Cdtr_Node'].text = self._config['name']
             PmtInf_nodes['IBAN_CdtrAcct_Node'].text = self._config['IBAN']
 
             if 'BIC' in self._config:
                 PmtInf_nodes['BIC_CdtrAgt_Node'].text = self._config['BIC']
 
             PmtInf_nodes['ChrgBrNode'].text = "SLEV"
-            PmtInf_nodes['Nm_CdtrSchmeId_Node'].text = escape(
-                                                       self._config['name'])
+            PmtInf_nodes['Nm_CdtrSchmeId_Node'].text = self._config['name']
             PmtInf_nodes['Id_Othr_Node'].text = self._config['creditor_id']
             PmtInf_nodes['PrtryNode'].text = "SEPA"
 
@@ -126,9 +124,9 @@ class SepaDD(object):
         if bic:
             TX_nodes['BIC_DbtrAgt_Node'].text = payment['BIC']
 
-        TX_nodes['Nm_Dbtr_Node'].text = escape(payment['name'])
+        TX_nodes['Nm_Dbtr_Node'].text = payment['name']
         TX_nodes['IBAN_DbtrAcct_Node'].text = payment['IBAN']
-        TX_nodes['UstrdNode'].text = escape(payment['description'])
+        TX_nodes['UstrdNode'].text = payment['description']
         TX_nodes['EndToEndIdNode'].text = make_id(self._config['name'])
 
         if self._config['batch']:
@@ -427,14 +425,14 @@ class SepaDD(object):
             PmtInf_nodes['Cd_LclInstrm_Node'].text = "CORE"
             PmtInf_nodes['SeqTpNode'].text = batch_meta_split[0]
             PmtInf_nodes['ReqdColltnDtNode'].text = batch_meta_split[1]
-            PmtInf_nodes['Nm_Cdtr_Node'].text = escape(self._config['name'])
+            PmtInf_nodes['Nm_Cdtr_Node'].text = self._config['name']
             PmtInf_nodes['IBAN_CdtrAcct_Node'].text = self._config['IBAN']
 
             if 'BIC' in self._config:
                 PmtInf_nodes['BIC_CdtrAgt_Node'].text = self._config['BIC']
 
             PmtInf_nodes['ChrgBrNode'].text = "SLEV"
-            PmtInf_nodes['Nm_CdtrSchmeId_Node'].text = escape(self._config['name'])
+            PmtInf_nodes['Nm_CdtrSchmeId_Node'].text = self._config['name']
             PmtInf_nodes['Id_Othr_Node'].text = self._config['creditor_id']
             PmtInf_nodes['PrtryNode'].text = "SEPA"
 
