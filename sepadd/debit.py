@@ -175,11 +175,11 @@ class SepaDD(object):
         self._xml.set("xmlns",
                       "urn:iso:std:iso:20022:tech:xsd:" + self.schema)
         self._xml.set("xmlns:xsi",
-                      "http://www.w3.org/2001/XMLSchema-intance")
+                      "http://www.w3.org/2001/XMLSchema-instance")
         ET.register_namespace("",
                               "urn:iso:std:iso:20022:tech:xsd:" + self.schema)
         ET.register_namespace("xsi",
-                              "http://www.w3.org/2001/XMLSchema-intance")
+                              "http://www.w3.org/2001/XMLSchema-instance")
         CstmrDrctDbtInitn_node = ET.Element("CstmrDrctDbtInitn")
         self._xml.append(CstmrDrctDbtInitn_node)
 
