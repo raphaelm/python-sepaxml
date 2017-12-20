@@ -12,7 +12,7 @@ sepadd -- SEPA Direct Debit XML
 
 This is a python implementation to generate SEPA direct debit XML files.
 
-For now, this is basically a properly packaged, python 3 tested version 
+For now, this is basically a properly packaged, python 3 tested version
 of the `PySepaDD`_ implementation that was released by The Congressus under the MIT license.
 Thanks for your work!
 
@@ -41,7 +41,8 @@ Example:
         "BIC": "BANKNL2A",
         "batch": True,
         "creditor_id": "DE26ZZZ00000000000",  # supplied by your bank or financial authority
-        "currency": "EUR"  # ISO 4217
+        "currency": "EUR",  # ISO 4217
+        # "instrument": "B2B"  # - default is CORE (B2C)
     }
     sepa = SepaDD(config, schema="pain.008.002.02")
 
