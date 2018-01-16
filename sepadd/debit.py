@@ -127,7 +127,9 @@ class SepaDD(object):
         TX_nodes['Nm_Dbtr_Node'].text = payment['name']
         TX_nodes['IBAN_DbtrAcct_Node'].text = payment['IBAN']
         TX_nodes['UstrdNode'].text = payment['description']
-        TX_nodes['EndToEndIdNode'].text = make_id(self._config['name'])
+        if not payment.get('endtoend_id', ''):
+            payment['endtoend_id'] = make_id(self._config['name'])
+        TX_nodes['EndToEndIdNode'].text = payment['endtoend_id']
 
         if self._config['batch']:
             self._add_batch(TX_nodes, payment)
