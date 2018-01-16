@@ -1,12 +1,11 @@
-# encoding: utf-8
-
 import datetime
 
 import pytest
 
 from sepadd import SepaDD
 
-from .utils import clean_ids, validate_xml
+from .utils import clean_ids
+from .utils import validate_xml
 
 
 @pytest.fixture
@@ -201,7 +200,7 @@ def test_two_debits(sdd):
         "collection_date": datetime.date.today(),
         "mandate_id": "1234",
         "mandate_date": datetime.date.today(),
-        "description": u"Testgrüße <html>"
+        "description": "Testgrüße <html>"
     }
 
     sdd.add_payment(payment1)
