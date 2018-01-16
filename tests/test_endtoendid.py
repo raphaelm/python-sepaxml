@@ -6,8 +6,7 @@ import pytest
 
 from sepadd import SepaDD
 
-from .utils import clean_ids
-from .utils import validate_xml
+from .utils import clean_ids, validate_xml
 
 
 @pytest.fixture
