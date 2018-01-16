@@ -69,6 +69,11 @@ To run the included tests::
     pip install -r requirements_dev.txt
     py.test tests
 
+To automatically sort your Imports as required by CI::
+
+    pip install isort
+    isort -rc .
+
 
 Credits and License
 -------------------
