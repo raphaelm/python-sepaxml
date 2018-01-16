@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 import datetime
 
 import pytest
@@ -199,7 +201,7 @@ def test_two_debits(sdd):
         "collection_date": datetime.date.today(),
         "mandate_id": "1234",
         "mandate_date": datetime.date.today(),
-        "description": "Testgrüße <html>"
+        "description": u"Testgrüße <html>"
     }
 
     sdd.add_payment(payment1)
