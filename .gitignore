@@ -4,4 +4,7 @@ dist/
 *.egg-info
 env
 .idea/
+*.pyc
+*~
+.cache/
 
