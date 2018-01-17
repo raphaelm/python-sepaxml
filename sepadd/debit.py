@@ -28,6 +28,9 @@ class SepaDD(object):
         config_result = self.check_config(config)
         if config_result:
             self._config = config
+        # set defaults
+        if "instrument" not in self._config:
+            self._config["instrument"] = "CORE"
 
         self._prepare_document()
         self._create_header()
@@ -96,7 +99,7 @@ class SepaDD(object):
             PmtInf_nodes['CtrlSumNode'].text = int_to_decimal_str(
                                                payment['amount'])
             PmtInf_nodes['Cd_SvcLvl_Node'].text = "SEPA"
-            PmtInf_nodes['Cd_LclInstrm_Node'].text = "CORE"
+            PmtInf_nodes['Cd_LclInstrm_Node'].text = self._config['instrument']
             PmtInf_nodes['SeqTpNode'].text = payment['type']
             PmtInf_nodes['ReqdColltnDtNode'].text = payment['collection_date']
             PmtInf_nodes['Nm_Cdtr_Node'].text = self._config['name']
@@ -424,7 +427,7 @@ class SepaDD(object):
             PmtInf_nodes['PmtMtdNode'].text = "DD"
             PmtInf_nodes['BtchBookgNode'].text = "true"
             PmtInf_nodes['Cd_SvcLvl_Node'].text = "SEPA"
-            PmtInf_nodes['Cd_LclInstrm_Node'].text = "CORE"
+            PmtInf_nodes['Cd_LclInstrm_Node'].text = self._config['instrument']
             PmtInf_nodes['SeqTpNode'].text = batch_meta_split[0]
             PmtInf_nodes['ReqdColltnDtNode'].text = batch_meta_split[1]
             PmtInf_nodes['Nm_Cdtr_Node'].text = self._config['name']
