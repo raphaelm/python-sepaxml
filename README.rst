@@ -12,7 +12,7 @@ sepadd -- SEPA Direct Debit XML
 
 This is a python implementation to generate SEPA direct debit XML files.
 
-For now, this is basically a properly packaged, python 3 tested version 
+For now, this is basically a properly packaged, python 3 tested version
 of the `PySepaDD`_ implementation that was released by The Congressus under the MIT license.
 Thanks for your work!
 
@@ -59,6 +59,20 @@ Example:
     sepa.add_payment(payment)
 
     print(sepa.export())
+
+
+Development
+-----------
+
+To run the included tests::
+
+    pip install -r requirements_dev.txt
+    py.test tests
+
+To automatically sort your Imports as required by CI::
+
+    pip install isort
+    isort -rc .
 
 
 Credits and License
