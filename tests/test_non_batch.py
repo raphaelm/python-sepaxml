@@ -29,6 +29,13 @@ SAMPLE_RESULT = b"""
       <CtrlSum>60.12</CtrlSum>
       <InitgPty>
         <Nm>TestCreditor</Nm>
+        <Id>
+          <OrgId>
+            <Othr>
+              <Id>DE26ZZZ00000000000</Id>
+            </Othr>
+          </OrgId>
+        </Id>
       </InitgPty>
     </GrpHdr>
     <PmtInf>
@@ -206,4 +213,6 @@ def test_two_debits(sdd):
     sdd.add_payment(payment2)
     xmlout = sdd.export()
     xmlpretty = validate_xml(xmlout, "pain.008.003.02")
+    print(clean_ids(xmlpretty.strip()))
+    print(clean_ids(SAMPLE_RESULT.strip()))
     assert clean_ids(xmlpretty.strip()) == clean_ids(SAMPLE_RESULT.strip())
