@@ -1,9 +1,9 @@
 import datetime
 
 import pytest
-from tests.utils import clean_ids, validate_xml
 
 from sepaxml import SepaTransfer
+from tests.utils import clean_ids, validate_xml
 
 
 @pytest.fixture
