@@ -1,5 +1,5 @@
-sepadd -- SEPA XML Generator
-============================
+SEPA XML Generator
+==================
 
 .. image:: https://travis-ci.org/raphaelm/python-sepaxml.svg?branch=master
    :target: https://travis-ci.org/raphaelm/python-sepaxml
