@@ -1,26 +1,23 @@
-sepadd -- SEPA Direct Debit XML
-===============================
+sepadd -- SEPA XML Generator
+============================
 
-.. image:: https://travis-ci.org/raphaelm/python-sepadd.svg?branch=master
-   :target: https://travis-ci.org/raphaelm/python-sepadd
+.. image:: https://travis-ci.org/raphaelm/python-sepaxml.svg?branch=master
+   :target: https://travis-ci.org/raphaelm/python-sepaxml
 
-.. image:: https://codecov.io/gh/raphaelm/python-sepadd/branch/master/graph/badge.svg
-   :target: https://codecov.io/gh/raphaelm/python-sepadd
+.. image:: https://codecov.io/gh/raphaelm/python-sepaxml/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/raphaelm/python-sepaxml
 
-.. image:: http://img.shields.io/pypi/v/sepadd.svg
-   :target: https://pypi.python.org/pypi/sepadd
+.. image:: http://img.shields.io/pypi/v/sepaxml.svg
+   :target: https://pypi.python.org/pypi/sepaxml
 
-This is a python implementation to generate SEPA direct debit XML files.
-
-For now, this is basically a properly packaged, python 3 tested version
-of the `PySepaDD`_ implementation that was released by The Congressus under the MIT license.
-Thanks for your work!
+This is a python implementation to generate SEPA XML files.
 
 Limitations
 -----------
 
 Supported standards:
 
+* SEPA PAIN.001.001.03
 * SEPA PAIN.008.001.02
 * SEPA PAIN.008.002.02
 * SEPA PAIN.008.003.02
@@ -28,11 +25,14 @@ Supported standards:
 Usage
 -----
 
+Direct debit
+""""""""""""
+
 Example:
 
 .. code:: python
 
-    from sepadd import SepaDD
+    from sepaxml import SepaDD
     import datetime, uuid
 
     config = {
@@ -63,6 +63,38 @@ Example:
     print(sepa.export())
 
 
+Credit transfer
+"""""""""""""""
+
+Example:
+
+.. code:: python
+
+    from sepaxml import SepaTransfer
+    import datetime, uuid
+
+    config = {
+        "name": "Test von Testenstein",
+        "IBAN": "NL50BANK1234567890",
+        "BIC": "BANKNL2A",
+        "batch": True,
+        "currency": "EUR",  # ISO 4217
+    }
+    sepa = SepaTransfer(config)
+
+    payment = {
+        "name": "Test von Testenstein",
+        "IBAN": "NL50BANK1234567890",
+        "BIC": "BANKNL2A",
+        "amount": 5000,  # in cents
+        "execution_date": datetime.date.today(),
+        "description": "Test transaction",
+        # "endtoend_id": str(uuid.uuid1())  # optional
+    }
+    sepa.add_payment(payment)
+
+    print(sepa.export())
+
 Development
 -----------
 
@@ -82,7 +114,9 @@ Credits and License
 
 Maintainer: Raphael Michel <mail@raphaelmichel.de>
 
-Original Author: Congressus
+This basically started as a properly packaged, python 3 tested version
+of the `PySepaDD`_ implementation that was released by The Congressus under the MIT license.
+Thanks for your work!
 
 License: MIT
 

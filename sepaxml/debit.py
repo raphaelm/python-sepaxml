@@ -1,39 +1,20 @@
 import datetime
 import xml.etree.ElementTree as ET
-from collections import OrderedDict
 
-from sepadd.utils import (decimal_str_to_int, int_to_decimal_str, make_id,
-                          make_msg_id)
+from .shared import SepaPaymentInitn
+from .utils import int_to_decimal_str, make_id
 
 
-class SepaDD(object):
+class SepaDD(SepaPaymentInitn):
     """
     This class creates a Sepa Direct Debit XML File.
     """
+    root_el = "CstmrDrctDbtInitn"
 
     def __init__(self, config, schema="pain.008.002.02"):
-        """
-        Constructor. Checks the config, prepares the document and
-        builds the header.
-        @param param: The config dict.
-        @raise exception: When the config file is invalid.
-        """
-        self._config = None                    # Will contain the config file.
-        self._xml = None                       # Will contain the final XML file.
-        self._batches = OrderedDict()          # Will contain the SEPA batches.
-        self._batch_totals = OrderedDict()     # Will contain the total amount to debit per batch for checksum total.
-        self.schema = schema
-        self.msg_id = make_msg_id()
-
-        config_result = self.check_config(config)
-        if config_result:
-            self._config = config
-        # set defaults
-        if "instrument" not in self._config:
-            self._config["instrument"] = "CORE"
-
-        self._prepare_document()
-        self._create_header()
+        if "instrument" not in config:
+            config["instrument"] = "CORE"
+        super().__init__(config, schema)
 
     def check_config(self, config):
         """
@@ -56,7 +37,7 @@ class SepaDD(object):
 
     def check_payment(self, payment):
         """
-        Check the config file for required fields and validity.
+        Check the payment for required fields and validity.
         @param payment: The payment dict
         @return: True if valid, error string if invalid paramaters where
         encountered.
@@ -97,7 +78,7 @@ class SepaDD(object):
             PmtInf_nodes['BtchBookgNode'].text = "false"
             PmtInf_nodes['NbOfTxsNode'].text = "1"
             PmtInf_nodes['CtrlSumNode'].text = int_to_decimal_str(
-                                               payment['amount'])
+                payment['amount'])
             PmtInf_nodes['Cd_SvcLvl_Node'].text = "SEPA"
             PmtInf_nodes['Cd_LclInstrm_Node'].text = self._config['instrument']
             PmtInf_nodes['SeqTpNode'].text = payment['type']
@@ -138,55 +119,6 @@ class SepaDD(object):
             self._add_batch(TX_nodes, payment)
         else:
             self._add_non_batch(TX_nodes, PmtInf_nodes)
-
-    def export(self):
-        """
-        Method to output the xml as string. It will finalize the batches and
-        then calculate the checksums (amount sum and transaction count),
-        fill these into the group header and output the XML.
-        """
-        self._finalize_batch()
-
-        ctrl_sum_total = 0
-        nb_of_txs_total = 0
-
-        for ctrl_sum in self._xml.iter('CtrlSum'):
-            if ctrl_sum.text is None:
-                continue
-            ctrl_sum_total += decimal_str_to_int(ctrl_sum.text)
-
-        for nb_of_txs in self._xml.iter('NbOfTxs'):
-            if nb_of_txs.text is None:
-                continue
-            nb_of_txs_total += int(nb_of_txs.text)
-
-        CstmrDrctDbtInitn_node = self._xml.find('CstmrDrctDbtInitn')
-        GrpHdr_node = CstmrDrctDbtInitn_node.find('GrpHdr')
-        CtrlSum_node = GrpHdr_node.find('CtrlSum')
-        NbOfTxs_node = GrpHdr_node.find('NbOfTxs')
-        CtrlSum_node.text = int_to_decimal_str(ctrl_sum_total)
-        NbOfTxs_node.text = str(nb_of_txs_total)
-
-        # Prepending the XML version is hacky, but cElementTree only offers this
-        # automatically if you write to a file, which we don't necessarily want.
-        return b"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + ET.tostring(
-               self._xml, "utf-8")
-
-    def _prepare_document(self):
-        """
-        Build the main document node and set xml namespaces.
-        """
-        self._xml = ET.Element("Document")
-        self._xml.set("xmlns",
-                      "urn:iso:std:iso:20022:tech:xsd:" + self.schema)
-        self._xml.set("xmlns:xsi",
-                      "http://www.w3.org/2001/XMLSchema-instance")
-        ET.register_namespace("",
-                              "urn:iso:std:iso:20022:tech:xsd:" + self.schema)
-        ET.register_namespace("xsi",
-                              "http://www.w3.org/2001/XMLSchema-instance")
-        CstmrDrctDbtInitn_node = ET.Element("CstmrDrctDbtInitn")
-        self._xml.append(CstmrDrctDbtInitn_node)
 
     def _create_header(self):
         """
@@ -318,15 +250,15 @@ class SepaDD(object):
         PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['CdtrNode'])
 
         PmtInf_nodes['Id_CdtrAcct_Node'].append(
-                                         PmtInf_nodes['IBAN_CdtrAcct_Node'])
+            PmtInf_nodes['IBAN_CdtrAcct_Node'])
         PmtInf_nodes['CdtrAcctNode'].append(PmtInf_nodes['Id_CdtrAcct_Node'])
         PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['CdtrAcctNode'])
 
         if 'BIC' in self._config:
             PmtInf_nodes['FinInstnId_CdtrAgt_Node'].append(
-                        PmtInf_nodes['BIC_CdtrAgt_Node'])
+                PmtInf_nodes['BIC_CdtrAgt_Node'])
         PmtInf_nodes['CdtrAgtNode'].append(
-                                    PmtInf_nodes['FinInstnId_CdtrAgt_Node'])
+            PmtInf_nodes['FinInstnId_CdtrAgt_Node'])
         PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['CdtrAgtNode'])
 
         PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ChrgBrNode'])
@@ -339,7 +271,7 @@ class SepaDD(object):
         PmtInf_nodes['PrvtIdNode'].append(PmtInf_nodes['OthrNode'])
         PmtInf_nodes['Id_CdtrSchmeId_Node'].append(PmtInf_nodes['PrvtIdNode'])
         PmtInf_nodes['CdtrSchmeIdNode'].append(
-                                        PmtInf_nodes['Id_CdtrSchmeId_Node'])
+            PmtInf_nodes['Id_CdtrSchmeId_Node'])
         PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['CdtrSchmeIdNode'])
 
         TX_nodes['PmtIdNode'].append(TX_nodes['EndToEndIdNode'])
@@ -353,7 +285,7 @@ class SepaDD(object):
 
         if 'BIC_DbtrAgt_Node' in TX_nodes and TX_nodes['BIC_DbtrAgt_Node'].text is not None:
             TX_nodes['FinInstnId_DbtrAgt_Node'].append(
-                                                TX_nodes['BIC_DbtrAgt_Node'])
+                TX_nodes['BIC_DbtrAgt_Node'])
         TX_nodes['DbtrAgtNode'].append(TX_nodes['FinInstnId_DbtrAgt_Node'])
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['DbtrAgtNode'])
 
@@ -387,7 +319,7 @@ class SepaDD(object):
 
         if 'BIC_DbtrAgt_Node' in TX_nodes and TX_nodes['BIC_DbtrAgt_Node'].text is not None:
             TX_nodes['FinInstnId_DbtrAgt_Node'].append(
-                                                TX_nodes['BIC_DbtrAgt_Node'])
+                TX_nodes['BIC_DbtrAgt_Node'])
         TX_nodes['DbtrAgtNode'].append(TX_nodes['FinInstnId_DbtrAgt_Node'])
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['DbtrAgtNode'])
 
@@ -461,7 +393,7 @@ class SepaDD(object):
 
             PmtInf_nodes['SvcLvlNode'].append(PmtInf_nodes['Cd_SvcLvl_Node'])
             PmtInf_nodes['LclInstrmNode'].append(
-                                          PmtInf_nodes['Cd_LclInstrm_Node'])
+                PmtInf_nodes['Cd_LclInstrm_Node'])
             PmtInf_nodes['PmtTpInfNode'].append(PmtInf_nodes['SvcLvlNode'])
             PmtInf_nodes['PmtTpInfNode'].append(PmtInf_nodes['LclInstrmNode'])
             PmtInf_nodes['PmtTpInfNode'].append(PmtInf_nodes['SeqTpNode'])
@@ -472,16 +404,16 @@ class SepaDD(object):
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['CdtrNode'])
 
             PmtInf_nodes['Id_CdtrAcct_Node'].append(
-                                            PmtInf_nodes['IBAN_CdtrAcct_Node'])
+                PmtInf_nodes['IBAN_CdtrAcct_Node'])
             PmtInf_nodes['CdtrAcctNode'].append(
-                                         PmtInf_nodes['Id_CdtrAcct_Node'])
+                PmtInf_nodes['Id_CdtrAcct_Node'])
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['CdtrAcctNode'])
 
             if 'BIC' in self._config:
                 PmtInf_nodes['FinInstnId_CdtrAgt_Node'].append(
-                                            PmtInf_nodes['BIC_CdtrAgt_Node'])
+                    PmtInf_nodes['BIC_CdtrAgt_Node'])
             PmtInf_nodes['CdtrAgtNode'].append(
-                                       PmtInf_nodes['FinInstnId_CdtrAgt_Node'])
+                PmtInf_nodes['FinInstnId_CdtrAgt_Node'])
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['CdtrAgtNode'])
 
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ChrgBrNode'])
@@ -493,9 +425,9 @@ class SepaDD(object):
             PmtInf_nodes['OthrNode'].append(PmtInf_nodes['SchmeNmNode'])
             PmtInf_nodes['PrvtIdNode'].append(PmtInf_nodes['OthrNode'])
             PmtInf_nodes['Id_CdtrSchmeId_Node'].append(
-                                                PmtInf_nodes['PrvtIdNode'])
+                PmtInf_nodes['PrvtIdNode'])
             PmtInf_nodes['CdtrSchmeIdNode'].append(
-                                           PmtInf_nodes['Id_CdtrSchmeId_Node'])
+                PmtInf_nodes['Id_CdtrSchmeId_Node'])
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['CdtrSchmeIdNode'])
 
             for txnode in batch_nodes:

@@ -3,7 +3,7 @@ from os import path
 
 from setuptools import find_packages, setup
 
-from sepadd import version
+from sepaxml import version
 
 here = path.abspath(path.dirname(__file__))
 
@@ -15,11 +15,11 @@ except:
     long_description = ''
 
 setup(
-    name='sepadd',
+    name='sepaxml',
     version=version,
-    description='Python SEPA Direct Debit XML implementation',
+    description='Python SEPA XML implementations',
     long_description=long_description,
-    url='https://github.com/raphaelm/python-sepadd',
+    url='https://github.com/raphaelm/python-sepaxml',
     author='Raphael Michel',
     author_email='mail@raphaelmichel.de',
     license='MIT License',
@@ -37,5 +37,5 @@ setup(
     install_requires=[
     ],
 
-    packages=find_packages(include=['sepadd', 'sepadd.*']),
+    packages=find_packages(include=['sepaxml', 'sepaxml.*', 'sepadd', 'sepadd.*']),
 )
