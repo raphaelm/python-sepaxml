@@ -2,9 +2,9 @@ import datetime
 
 import pytest
 
-from sepadd import SepaDD
+from sepaxml import SepaDD
 
-from .utils import clean_ids, validate_xml
+from tests.utils import clean_ids, validate_xml
 
 
 @pytest.fixture
@@ -15,8 +15,7 @@ def sdd():
         "BIC": "BANKNL2A",
         "batch": True,
         "creditor_id": "DE26ZZZ00000000000",
-        "currency": "EUR",
-        "instrument": "B2B"
+        "currency": "EUR"
     }, schema="pain.008.003.02")
 
 
@@ -50,7 +49,7 @@ SAMPLE_RESULT = b"""
           <Cd>SEPA</Cd>
         </SvcLvl>
         <LclInstrm>
-          <Cd>B2B</Cd>
+          <Cd>CORE</Cd>
         </LclInstrm>
         <SeqTp>FRST</SeqTp>
       </PmtTpInf>
@@ -121,7 +120,7 @@ SAMPLE_RESULT = b"""
           <Cd>SEPA</Cd>
         </SvcLvl>
         <LclInstrm>
-          <Cd>B2B</Cd>
+          <Cd>CORE</Cd>
         </LclInstrm>
         <SeqTp>RCUR</SeqTp>
       </PmtTpInf>

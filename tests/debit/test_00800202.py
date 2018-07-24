@@ -2,9 +2,9 @@ import datetime
 
 import pytest
 
-from sepadd import SepaDD
+from sepaxml import SepaDD
 
-from .utils import clean_ids, validate_xml
+from tests.utils import clean_ids, validate_xml
 
 
 @pytest.fixture
@@ -13,14 +13,14 @@ def sdd():
         "name": "TestCreditor",
         "IBAN": "NL50BANK1234567890",
         "BIC": "BANKNL2A",
-        "batch": False,
+        "batch": True,
         "creditor_id": "DE26ZZZ00000000000",
         "currency": "EUR"
-    }, schema="pain.008.003.02")
+    }, schema="pain.008.002.02")
 
 
 SAMPLE_RESULT = b"""
-<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.003.02" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.002.02" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <CstmrDrctDbtInitn>
     <GrpHdr>
       <MsgId>20012017014921-ba2dab283fdd</MsgId>
@@ -41,7 +41,7 @@ SAMPLE_RESULT = b"""
     <PmtInf>
       <PmtInfId>TestCreditor-ecd6a2f680ce</PmtInfId>
       <PmtMtd>DD</PmtMtd>
-      <BtchBookg>false</BtchBookg>
+      <BtchBookg>true</BtchBookg>
       <NbOfTxs>1</NbOfTxs>
       <CtrlSum>10.12</CtrlSum>
       <PmtTpInf>
@@ -112,7 +112,7 @@ SAMPLE_RESULT = b"""
     <PmtInf>
       <PmtInfId>TestCreditor-d547a1b3882f</PmtInfId>
       <PmtMtd>DD</PmtMtd>
-      <BtchBookg>false</BtchBookg>
+      <BtchBookg>true</BtchBookg>
       <NbOfTxs>1</NbOfTxs>
       <CtrlSum>50.00</CtrlSum>
       <PmtTpInf>
@@ -212,5 +212,5 @@ def test_two_debits(sdd):
     sdd.add_payment(payment1)
     sdd.add_payment(payment2)
     xmlout = sdd.export()
-    xmlpretty = validate_xml(xmlout, "pain.008.003.02")
+    xmlpretty = validate_xml(xmlout, "pain.008.002.02")
     assert clean_ids(xmlpretty.strip()) == clean_ids(SAMPLE_RESULT.strip())

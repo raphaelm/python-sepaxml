@@ -1,28 +1,26 @@
-# encoding: utf-8
-
 import datetime
 
 import pytest
 
-from sepadd import SepaDD
+from sepaxml import SepaDD
 
-from .utils import clean_ids, validate_xml
+from tests.utils import clean_ids, validate_xml
 
 
 @pytest.fixture
 def sdd():
     return SepaDD({
-        "name": "Miller & Son Ltd",
+        "name": "TestCreditor",
         "IBAN": "NL50BANK1234567890",
         "BIC": "BANKNL2A",
         "batch": True,
         "creditor_id": "DE26ZZZ00000000000",
         "currency": "EUR"
-    }, schema="pain.008.003.02")
+    }, schema="pain.008.001.02")
 
 
 SAMPLE_RESULT = b"""
-<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.003.02" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.001.02" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <CstmrDrctDbtInitn>
     <GrpHdr>
       <MsgId>20012017014921-ba2dab283fdd</MsgId>
@@ -30,7 +28,7 @@ SAMPLE_RESULT = b"""
       <NbOfTxs>2</NbOfTxs>
       <CtrlSum>60.12</CtrlSum>
       <InitgPty>
-        <Nm>Miller &amp; Son Ltd</Nm>
+        <Nm>TestCreditor</Nm>
         <Id>
           <OrgId>
             <Othr>
@@ -41,7 +39,7 @@ SAMPLE_RESULT = b"""
       </InitgPty>
     </GrpHdr>
     <PmtInf>
-      <PmtInfId>MillerSonLtd-ecd6a2f680ce</PmtInfId>
+      <PmtInfId>TestCreditor-ecd6a2f680ce</PmtInfId>
       <PmtMtd>DD</PmtMtd>
       <BtchBookg>true</BtchBookg>
       <NbOfTxs>1</NbOfTxs>
@@ -57,7 +55,7 @@ SAMPLE_RESULT = b"""
       </PmtTpInf>
       <ReqdColltnDt>2017-01-20</ReqdColltnDt>
       <Cdtr>
-        <Nm>Miller &amp; Son Ltd</Nm>
+        <Nm>TestCreditor</Nm>
       </Cdtr>
       <CdtrAcct>
         <Id>
@@ -71,6 +69,7 @@ SAMPLE_RESULT = b"""
       </CdtrAgt>
       <ChrgBr>SLEV</ChrgBr>
       <CdtrSchmeId>
+        <Nm>TestCreditor</Nm>
         <Id>
           <PrvtId>
             <Othr>
@@ -84,7 +83,7 @@ SAMPLE_RESULT = b"""
       </CdtrSchmeId>
       <DrctDbtTxInf>
         <PmtId>
-          <EndToEndId>ebd75e7e649375d91b33dc11ae44c0e1</EndToEndId>
+          <EndToEndId>TestCreditor-4431989789fb</EndToEndId>
         </PmtId>
         <InstdAmt Ccy="EUR">10.12</InstdAmt>
         <DrctDbtTx>
@@ -99,7 +98,7 @@ SAMPLE_RESULT = b"""
           </FinInstnId>
         </DbtrAgt>
         <Dbtr>
-          <Nm>Test &amp; Co.</Nm>
+          <Nm>Test von Testenstein</Nm>
         </Dbtr>
         <DbtrAcct>
           <Id>
@@ -112,7 +111,7 @@ SAMPLE_RESULT = b"""
       </DrctDbtTxInf>
     </PmtInf>
     <PmtInf>
-      <PmtInfId>MillerSonLtd-d547a1b3882f</PmtInfId>
+      <PmtInfId>TestCreditor-d547a1b3882f</PmtInfId>
       <PmtMtd>DD</PmtMtd>
       <BtchBookg>true</BtchBookg>
       <NbOfTxs>1</NbOfTxs>
@@ -128,7 +127,7 @@ SAMPLE_RESULT = b"""
       </PmtTpInf>
       <ReqdColltnDt>2017-01-20</ReqdColltnDt>
       <Cdtr>
-        <Nm>Miller &amp; Son Ltd</Nm>
+        <Nm>TestCreditor</Nm>
       </Cdtr>
       <CdtrAcct>
         <Id>
@@ -142,6 +141,7 @@ SAMPLE_RESULT = b"""
       </CdtrAgt>
       <ChrgBr>SLEV</ChrgBr>
       <CdtrSchmeId>
+        <Nm>TestCreditor</Nm>
         <Id>
           <PrvtId>
             <Othr>
@@ -155,7 +155,7 @@ SAMPLE_RESULT = b"""
       </CdtrSchmeId>
       <DrctDbtTxInf>
         <PmtId>
-          <EndToEndId>af755a40cb692551ed9f9d55f7179525</EndToEndId>
+          <EndToEndId>TestCreditor-7e989083e265</EndToEndId>
         </PmtId>
         <InstdAmt Ccy="EUR">50.00</InstdAmt>
         <DrctDbtTx>
@@ -178,7 +178,7 @@ SAMPLE_RESULT = b"""
           </Id>
         </DbtrAcct>
         <RmtInf>
-          <Ustrd>Testgr&#252;&#223;e &lt;html&gt;</Ustrd>
+          <Ustrd>Test transaction2</Ustrd>
         </RmtInf>
       </DrctDbtTxInf>
     </PmtInf>
@@ -189,7 +189,7 @@ SAMPLE_RESULT = b"""
 
 def test_two_debits(sdd):
     payment1 = {
-        "name": "Test & Co.",
+        "name": "Test von Testenstein",
         "IBAN": "NL50BANK1234567890",
         "BIC": "BANKNL2A",
         "amount": 1012,
@@ -197,8 +197,7 @@ def test_two_debits(sdd):
         "collection_date": datetime.date.today(),
         "mandate_id": "1234",
         "mandate_date": datetime.date.today(),
-        "description": "Test transaction1",
-        "endtoend_id": "ebd75e7e649375d91b33dc11ae44c0e1"
+        "description": "Test transaction1"
     }
     payment2 = {
         "name": "Test du Test",
@@ -209,12 +208,11 @@ def test_two_debits(sdd):
         "collection_date": datetime.date.today(),
         "mandate_id": "1234",
         "mandate_date": datetime.date.today(),
-        "description": u"Testgrüße <html>",
-        "endtoend_id": "af755a40cb692551ed9f9d55f7179525"
+        "description": "Test transaction2"
     }
 
     sdd.add_payment(payment1)
     sdd.add_payment(payment2)
     xmlout = sdd.export()
-    xmlpretty = validate_xml(xmlout, "pain.008.003.02")
+    xmlpretty = validate_xml(xmlout, "pain.008.001.02")
     assert clean_ids(xmlpretty.strip()) == clean_ids(SAMPLE_RESULT.strip())

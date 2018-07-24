@@ -1,25 +1,23 @@
 import pytest
 
-from sepadd import SepaDD
+from sepaxml import SepaTransfer
 
 
 def test_valid_config():
-    return SepaDD({
+    return SepaTransfer({
         "name": "TestCreditor",
         "IBAN": "NL50BANK1234567890",
         "BIC": "BANKNL2A",
         "batch": True,
-        "creditor_id": "000000",
         "currency": "EUR"
     })
 
 
 def test_invalid_config():
     with pytest.raises(Exception):
-        return SepaDD({
+        return SepaTransfer({
             "name": "TestCreditor",
             "BIC": "BANKNL2A",
             "batch": True,
-            "creditor_id": "000000",
             "currency": "EUR"
         })

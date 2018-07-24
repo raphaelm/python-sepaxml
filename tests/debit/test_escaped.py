@@ -2,9 +2,9 @@ import datetime
 
 import pytest
 
-from sepadd import SepaDD
+from sepaxml import SepaDD
 
-from .utils import clean_ids, validate_xml
+from tests.utils import clean_ids, validate_xml
 
 
 @pytest.fixture
