@@ -3,10 +3,9 @@
 import datetime
 
 import pytest
-
-from sepaxml import SepaDD, SepaTransfer
-
 from tests.utils import clean_ids, validate_xml
+
+from sepaxml import SepaTransfer
 
 
 @pytest.fixture

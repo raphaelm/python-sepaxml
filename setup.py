@@ -37,5 +37,5 @@ setup(
     install_requires=[
     ],
 
-    packages=find_packages(include=['sepaxml', 'sepaxml.*']),
+    packages=find_packages(include=['sepaxml', 'sepaxml.*', 'sepadd', 'sepadd.*']),
 )

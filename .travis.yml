@@ -7,8 +7,8 @@ install:
     - pip install -U pip wheel coverage codecov
     - pip install -r requirements_dev.txt
 script:
-    - flake8 sepadd tests
-    - isort -rc -c sepadd tests
+    - flake8 sepaxml tests
+    - isort -rc -c sepaxml tests
     - coverage run -m py.test -v tests/ && codecov
 cache:
     directories:

@@ -1,5 +1,6 @@
-from sepaxml import SepaTransfer
 import datetime
+
+from sepaxml import SepaTransfer
 
 config = {
     "name": "Test von Testenstein",

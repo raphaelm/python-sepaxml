@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
 
-from .utils import make_msg_id, decimal_str_to_int, int_to_decimal_str
+from .utils import decimal_str_to_int, int_to_decimal_str, make_msg_id
 
 
 class SepaPaymentInitn:
