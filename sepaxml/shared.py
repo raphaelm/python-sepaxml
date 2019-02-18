@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
 
+from .validation import is_valid_xml, ValidationError
 from .utils import decimal_str_to_int, int_to_decimal_str, make_msg_id
 
 
@@ -49,7 +50,7 @@ class SepaPaymentInitn:
     def _finalize_batch(self):
         raise NotImplementedError()
 
-    def export(self):
+    def export(self, validate=True):
         """
         Method to output the xml as string. It will finalize the batches and
         then calculate the checksums (amount sum and transaction count),
@@ -79,5 +80,11 @@ class SepaPaymentInitn:
 
         # Prepending the XML version is hacky, but cElementTree only offers this
         # automatically if you write to a file, which we don't necessarily want.
-        return b"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + ET.tostring(
+        out = b"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + ET.tostring(
             self._xml, "utf-8")
+        if validate and not is_valid_xml(out, self.schema):
+            raise ValidationError(
+                "The output SEPA file contains validation errors. This is likely due to an illegal value in one of "
+                "your input fields."
+            )
+        return out

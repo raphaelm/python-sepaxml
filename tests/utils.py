@@ -3,9 +3,11 @@ import re
 
 from lxml import etree
 
+from sepaxml import validation
+
 
 def validate_xml(xmlout, schema):
-    with open(os.path.join(os.path.dirname(__file__), schema + '.xsd'), 'rb') as schema_file:
+    with open(os.path.join(os.path.dirname(validation.__file__), 'schemas', schema + '.xsd'), 'rb') as schema_file:
         schema_xml = schema_file.read()
     schema_root = etree.XML(schema_xml)
     schema = etree.XMLSchema(schema_root)
