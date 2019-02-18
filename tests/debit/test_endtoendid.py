@@ -177,7 +177,7 @@ SAMPLE_RESULT = b"""
           </Id>
         </DbtrAcct>
         <RmtInf>
-          <Ustrd>Testgr&#252;&#223;e &lt;html&gt;</Ustrd>
+          <Ustrd>Testgrusse &lt;html&gt;</Ustrd>
         </RmtInf>
       </DrctDbtTxInf>
     </PmtInf>

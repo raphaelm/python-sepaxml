@@ -9,7 +9,7 @@ from tests.utils import clean_ids, validate_xml
 @pytest.fixture
 def sdd():
     return SepaDD({
-        "name": "Miller & Son Ltd",
+        "name": "Müller & Sohn Ltd",
         "IBAN": "NL50BANK1234567890",
         "BIC": "BANKNL2A",
         "batch": True,
@@ -27,7 +27,7 @@ SAMPLE_RESULT = b"""
       <NbOfTxs>2</NbOfTxs>
       <CtrlSum>60.12</CtrlSum>
       <InitgPty>
-        <Nm>Miller &amp; Son Ltd</Nm>
+        <Nm>Muller &amp; Sohn Ltd</Nm>
         <Id>
           <OrgId>
             <Othr>
@@ -38,7 +38,7 @@ SAMPLE_RESULT = b"""
       </InitgPty>
     </GrpHdr>
     <PmtInf>
-      <PmtInfId>MillerSonLtd-ecd6a2f680ce</PmtInfId>
+      <PmtInfId>MullerSohnLtd-ecd6a2f680ce</PmtInfId>
       <PmtMtd>DD</PmtMtd>
       <BtchBookg>true</BtchBookg>
       <NbOfTxs>1</NbOfTxs>
@@ -54,7 +54,7 @@ SAMPLE_RESULT = b"""
       </PmtTpInf>
       <ReqdColltnDt>2017-01-20</ReqdColltnDt>
       <Cdtr>
-        <Nm>Miller &amp; Son Ltd</Nm>
+        <Nm>Muller &amp; Sohn Ltd</Nm>
       </Cdtr>
       <CdtrAcct>
         <Id>
@@ -81,7 +81,7 @@ SAMPLE_RESULT = b"""
       </CdtrSchmeId>
       <DrctDbtTxInf>
         <PmtId>
-          <EndToEndId>MillerSonLtd-4431989789fb</EndToEndId>
+          <EndToEndId>MullerSohnLtd-4431989789fb</EndToEndId>
         </PmtId>
         <InstdAmt Ccy="EUR">10.12</InstdAmt>
         <DrctDbtTx>
@@ -109,7 +109,7 @@ SAMPLE_RESULT = b"""
       </DrctDbtTxInf>
     </PmtInf>
     <PmtInf>
-      <PmtInfId>MillerSonLtd-d547a1b3882f</PmtInfId>
+      <PmtInfId>MullerSohnLtd-d547a1b3882f</PmtInfId>
       <PmtMtd>DD</PmtMtd>
       <BtchBookg>true</BtchBookg>
       <NbOfTxs>1</NbOfTxs>
@@ -125,7 +125,7 @@ SAMPLE_RESULT = b"""
       </PmtTpInf>
       <ReqdColltnDt>2017-01-20</ReqdColltnDt>
       <Cdtr>
-        <Nm>Miller &amp; Son Ltd</Nm>
+        <Nm>Muller &amp; Sohn Ltd</Nm>
       </Cdtr>
       <CdtrAcct>
         <Id>
@@ -152,7 +152,7 @@ SAMPLE_RESULT = b"""
       </CdtrSchmeId>
       <DrctDbtTxInf>
         <PmtId>
-          <EndToEndId>MillerSonLtd-7e989083e265</EndToEndId>
+          <EndToEndId>MullerSohnLtd-7e989083e265</EndToEndId>
         </PmtId>
         <InstdAmt Ccy="EUR">50.00</InstdAmt>
         <DrctDbtTx>
@@ -175,7 +175,7 @@ SAMPLE_RESULT = b"""
           </Id>
         </DbtrAcct>
         <RmtInf>
-          <Ustrd>Testgr&#252;&#223;e &lt;html&gt;</Ustrd>
+          <Ustrd>Testgrusse &lt;html&gt;</Ustrd>
         </RmtInf>
       </DrctDbtTxInf>
     </PmtInf>
@@ -197,7 +197,7 @@ def test_two_debits(sdd):
         "description": "Test transaction1"
     }
     payment2 = {
-        "name": "Test du Test",
+        "name": "Test dü Test",
         "IBAN": "NL50BANK1234567890",
         "BIC": "BANKNL2A",
         "amount": 5000,
