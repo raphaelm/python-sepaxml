@@ -3,8 +3,8 @@ from collections import OrderedDict
 
 import unidecode
 
-from .validation import is_valid_xml, ValidationError
 from .utils import decimal_str_to_int, int_to_decimal_str, make_msg_id
+from .validation import ValidationError, is_valid_xml
 
 
 class SepaPaymentInitn:
