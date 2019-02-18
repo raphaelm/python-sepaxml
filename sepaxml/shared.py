@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
 
-import unidecode
+from text_unidecode import unidecode
 
 from .utils import decimal_str_to_int, int_to_decimal_str, make_msg_id
 from .validation import ValidationError, is_valid_xml
@@ -28,7 +28,7 @@ class SepaPaymentInitn:
         if config_result:
             self._config = config
             if self.clean:
-                self._config['name'] = unidecode.unidecode(self._config['name'])[:70]
+                self._config['name'] = unidecode(self._config['name'])[:70]
 
         self._prepare_document()
         self._create_header()

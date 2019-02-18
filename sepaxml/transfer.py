@@ -1,7 +1,7 @@
 import datetime
 import xml.etree.ElementTree as ET
 
-import unidecode
+from text_unidecode import unidecode
 
 from .shared import SepaPaymentInitn
 from .utils import int_to_decimal_str, make_id
@@ -71,8 +71,8 @@ class SepaTransfer(SepaPaymentInitn):
         self.check_payment(payment)
 
         if self.clean:
-            payment['name'] = unidecode.unidecode(payment['name'])[:70]
-            payment['description'] = unidecode.unidecode(payment['description'])[:140]
+            payment['name'] = unidecode(payment['name'])[:70]
+            payment['description'] = unidecode(payment['description'])[:140]
 
         # Get the CstmrDrctDbtInitnNode
         if not self._config['batch']:

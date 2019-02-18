@@ -36,7 +36,7 @@ setup(
     keywords='xml banking sepa',
     install_requires=[
         'xmlschema',
-        'unidecode'
+        'text-unidecode'
     ],
 
     packages=find_packages(include=['sepaxml', 'sepaxml.*', 'sepadd', 'sepadd.*']),
