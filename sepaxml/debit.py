@@ -1,6 +1,8 @@
 import datetime
 import xml.etree.ElementTree as ET
 
+import unidecode
+
 from .shared import SepaPaymentInitn
 from .utils import int_to_decimal_str, make_id
 
@@ -11,10 +13,10 @@ class SepaDD(SepaPaymentInitn):
     """
     root_el = "CstmrDrctDbtInitn"
 
-    def __init__(self, config, schema="pain.008.002.02"):
+    def __init__(self, config, schema="pain.008.002.02", clean=True):
         if "instrument" not in config:
             config["instrument"] = "CORE"
-        super().__init__(config, schema)
+        super().__init__(config, schema, clean)
 
     def check_config(self, config):
         """
@@ -66,6 +68,10 @@ class SepaDD(SepaPaymentInitn):
         @param payment: The payment dict
         @raise exception: when payment is invalid
         """
+        if self.clean:
+            payment['name'] = unidecode.unidecode(payment['name'])[:70]
+            payment['description'] = unidecode.unidecode(payment['description'])[:140]
+
         # Validate the payment
         self.check_payment(payment)
 

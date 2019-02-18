@@ -1,13 +1,15 @@
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
 
+import unidecode
+
 from .validation import is_valid_xml, ValidationError
 from .utils import decimal_str_to_int, int_to_decimal_str, make_msg_id
 
 
 class SepaPaymentInitn:
 
-    def __init__(self, config, schema):
+    def __init__(self, config, schema, clean=True):
         """
         Constructor. Checks the config, prepares the document and
         builds the header.
@@ -20,10 +22,13 @@ class SepaPaymentInitn:
         self._batch_totals = OrderedDict()  # Will contain the total amount to debit per batch for checksum total.
         self.schema = schema
         self.msg_id = make_msg_id()
+        self.clean = clean
 
         config_result = self.check_config(config)
         if config_result:
             self._config = config
+            if self.clean:
+                self._config['name'] = unidecode.unidecode(self._config['name'])[:70]
 
         self._prepare_document()
         self._create_header()
