@@ -1,8 +1,6 @@
 import datetime
 import xml.etree.ElementTree as ET
 
-from text_unidecode import unidecode
-
 from .shared import SepaPaymentInitn
 from .utils import int_to_decimal_str, make_id
 
@@ -71,6 +69,8 @@ class SepaTransfer(SepaPaymentInitn):
         self.check_payment(payment)
 
         if self.clean:
+            from text_unidecode import unidecode
+
             payment['name'] = unidecode(payment['name'])[:70]
             payment['description'] = unidecode(payment['description'])[:140]
 
