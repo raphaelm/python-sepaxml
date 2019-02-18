@@ -9,7 +9,7 @@ install:
     - python setup.py develop
 script:
     - flake8 sepaxml tests
-    - isort -rc -c sepaxml tests
+    - isort -rc -c sepaxml
     - coverage run -m py.test -v tests/ && codecov
 cache:
     directories:
