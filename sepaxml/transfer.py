@@ -50,9 +50,10 @@ class SepaTransfer(SepaPaymentInitn):
         if not isinstance(payment['amount'], int):
             validation += "AMOUNT_NOT_INTEGER "
 
-        if not isinstance(payment['execution_date'], datetime.date):
-            validation += "EXECUTION_DATE_INVALID_OR_NOT_DATETIME_INSTANCE"
-        payment['execution_date'] = payment['execution_date'].isoformat()
+        if 'execution_date' in payment:
+            if not isinstance(payment['execution_date'], datetime.date):
+                validation += "EXECUTION_DATE_INVALID_OR_NOT_DATETIME_INSTANCE"
+            payment['execution_date'] = payment['execution_date'].isoformat()
 
         if validation == "":
             return True
@@ -86,7 +87,10 @@ class SepaTransfer(SepaPaymentInitn):
                 payment['amount']
             )
             PmtInf_nodes['Cd_SvcLvl_Node'].text = "SEPA"
-            PmtInf_nodes['ReqdExctnDtNode'].text = payment['execution_date']
+            if 'execution_date' in payment:
+                PmtInf_nodes['ReqdExctnDtNode'].text = payment['execution_date']
+            else:
+                del PmtInf_nodes['ReqdExctnDtNode']
 
             PmtInf_nodes['Nm_Dbtr_Node'].text = self._config['name']
             PmtInf_nodes['IBAN_DbtrAcct_Node'].text = self._config['IBAN']
@@ -214,7 +218,8 @@ class SepaTransfer(SepaPaymentInitn):
         PmtInf_nodes['SvcLvlNode'].append(PmtInf_nodes['Cd_SvcLvl_Node'])
         PmtInf_nodes['PmtTpInfNode'].append(PmtInf_nodes['SvcLvlNode'])
         PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['PmtTpInfNode'])
-        PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ReqdExctnDtNode'])
+        if 'ReqdExctnDtNode' in PmtInf_nodes:
+            PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ReqdExctnDtNode'])
 
         PmtInf_nodes['DbtrNode'].append(PmtInf_nodes['Nm_Dbtr_Node'])
         PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['DbtrNode'])
@@ -289,7 +294,7 @@ class SepaTransfer(SepaPaymentInitn):
         not existant. This will also add the payment amount to the respective
         batch total.
         """
-        batch_key = payment['execution_date']
+        batch_key = payment.get('execution_date', None)
         if batch_key in self._batches.keys():
             self._batches[batch_key].append(TX['CdtTrfTxInfNode'])
         else:
@@ -316,7 +321,10 @@ class SepaTransfer(SepaPaymentInitn):
             PmtInf_nodes['BtchBookgNode'].text = "true"
             PmtInf_nodes['Cd_SvcLvl_Node'].text = "SEPA"
 
-            PmtInf_nodes['ReqdExctnDtNode'].text = batch_meta
+            if batch_meta:
+                PmtInf_nodes['ReqdExctnDtNode'].text = batch_meta
+            else:
+                del PmtInf_nodes['ReqdExctnDtNode']
             PmtInf_nodes['Nm_Dbtr_Node'].text = self._config['name']
             PmtInf_nodes['IBAN_DbtrAcct_Node'].text = self._config['IBAN']
 
@@ -336,7 +344,9 @@ class SepaTransfer(SepaPaymentInitn):
 
             PmtInf_nodes['SvcLvlNode'].append(PmtInf_nodes['Cd_SvcLvl_Node'])
             PmtInf_nodes['PmtTpInfNode'].append(PmtInf_nodes['SvcLvlNode'])
-            PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ReqdExctnDtNode'])
+            PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['PmtTpInfNode'])
+            if 'ReqdExctnDtNode' in PmtInf_nodes:
+               PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ReqdExctnDtNode'])
 
             PmtInf_nodes['DbtrNode'].append(PmtInf_nodes['Nm_Dbtr_Node'])
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['DbtrNode'])
