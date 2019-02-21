@@ -39,5 +39,6 @@ setup(
         'text-unidecode'
     ],
 
+    include_package_data=True,
     packages=find_packages(include=['sepaxml', 'sepaxml.*', 'sepadd', 'sepadd.*']),
 )
