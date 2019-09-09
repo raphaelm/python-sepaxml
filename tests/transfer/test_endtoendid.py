@@ -37,6 +37,11 @@ SAMPLE_RESULT = b"""
       <BtchBookg>true</BtchBookg>
       <NbOfTxs>2</NbOfTxs>
       <CtrlSum>20.24</CtrlSum>
+      <PmtTpInf>
+        <SvcLvl>
+          <Cd>SEPA</Cd>
+        </SvcLvl>
+      </PmtTpInf>
       <ReqdExctnDt>2018-07-24</ReqdExctnDt>
       <Dbtr>
         <Nm>Miller &amp; Son Ltd</Nm>
