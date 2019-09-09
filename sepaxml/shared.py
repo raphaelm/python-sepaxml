@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 from collections import OrderedDict
 
 from .utils import decimal_str_to_int, int_to_decimal_str, make_msg_id
-from .validation import ValidationError, is_valid_xml
+from .validation import ValidationError, try_valid_xml
 
 
 class SepaPaymentInitn:
@@ -87,9 +87,6 @@ class SepaPaymentInitn:
         # automatically if you write to a file, which we don't necessarily want.
         out = b"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + ET.tostring(
             self._xml, "utf-8")
-        if validate and not is_valid_xml(out, self.schema):
-            raise ValidationError(
-                "The output SEPA file contains validation errors. This is likely due to an illegal value in one of "
-                "your input fields."
-            )
+        if validate:
+            try_valid_xml(out, self.schema)
         return out
