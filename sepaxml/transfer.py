@@ -41,7 +41,7 @@ class SepaTransfer(SepaPaymentInitn):
         encountered.
         """
         validation = ""
-        required = ["name", "IBAN", "BIC", "amount", "description"]
+        required = ["name", "IBAN", "BIC", "amount", "description", "execution_date"]
 
         for config_item in required:
             if config_item not in payment:
