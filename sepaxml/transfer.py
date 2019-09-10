@@ -346,7 +346,7 @@ class SepaTransfer(SepaPaymentInitn):
             PmtInf_nodes['PmtTpInfNode'].append(PmtInf_nodes['SvcLvlNode'])
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['PmtTpInfNode'])
             if 'ReqdExctnDtNode' in PmtInf_nodes:
-               PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ReqdExctnDtNode'])
+                PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ReqdExctnDtNode'])
 
             PmtInf_nodes['DbtrNode'].append(PmtInf_nodes['Nm_Dbtr_Node'])
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['DbtrNode'])

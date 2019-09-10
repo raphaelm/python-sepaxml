@@ -1,7 +1,4 @@
 # encoding: utf-8
-
-import datetime
-
 import pytest
 
 from sepaxml import SepaTransfer

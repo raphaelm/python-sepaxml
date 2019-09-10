@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 from collections import OrderedDict
 
 from .utils import decimal_str_to_int, int_to_decimal_str, make_msg_id
-from .validation import ValidationError, try_valid_xml
+from .validation import try_valid_xml
 
 
 class SepaPaymentInitn:
