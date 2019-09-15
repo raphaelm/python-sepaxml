@@ -60,7 +60,7 @@ Example:
     }
     sepa.add_payment(payment)
 
-    print(sepa.export(valudate=True))
+    print(sepa.export(validate=True))
 
 
 Credit transfer
