@@ -70,7 +70,7 @@ def int_to_decimal_str(integer):
     @return string The amount in currency with full stop decimal separator
     """
     int_string = str(integer)
-    if len(int_string) < 2:
+    if len(int_string) <= 2:
         return "0." + int_string.zfill(2)
     else:
         return int_string[:-2] + "." + int_string[-2:]
