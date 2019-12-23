@@ -24,7 +24,9 @@ class SepaDD(SepaPaymentInitn):
         encountered.
         """
         validation = ""
-        required = ["name", "IBAN", "BIC", "batch", "creditor_id", "currency"]
+        required = ["name", "IBAN", "batch", "creditor_id", "currency"]
+        if self.schema == 'pain.008.001.02' or self.schema == 'pain.008.002.02':
+            required += ["BIC"]
 
         for config_item in required:
             if config_item not in config:
@@ -94,6 +96,8 @@ class SepaDD(SepaPaymentInitn):
 
             if 'BIC' in self._config:
                 PmtInf_nodes['BIC_CdtrAgt_Node'].text = self._config['BIC']
+            else:
+                PmtInf_nodes['Id_CdtrAgt_Node'].text = "NOTPROVIDED"
 
             PmtInf_nodes['ChrgBrNode'].text = "SLEV"
             PmtInf_nodes['Nm_CdtrSchmeId_Node'].text = self._config['name']
@@ -113,6 +117,8 @@ class SepaDD(SepaPaymentInitn):
         TX_nodes['DtOfSgntrNode'].text = payment['mandate_date']
         if bic:
             TX_nodes['BIC_DbtrAgt_Node'].text = payment['BIC']
+        else:
+            TX_nodes['Id_DbtrAgt_Node'].text = "NOTPROVIDED"
 
         TX_nodes['Nm_Dbtr_Node'].text = payment['name']
         TX_nodes['IBAN_DbtrAcct_Node'].text = payment['IBAN']
@@ -195,6 +201,9 @@ class SepaDD(SepaPaymentInitn):
         ED['FinInstnId_CdtrAgt_Node'] = ET.Element("FinInstnId")
         if 'BIC' in self._config:
             ED['BIC_CdtrAgt_Node'] = ET.Element("BIC")
+        else:
+            ED['Othr_CdtrAgt_Node'] = ET.Element("Othr")
+            ED['Id_CdtrAgt_Node'] = ET.Element("Id")
         ED['ChrgBrNode'] = ET.Element("ChrgBr")
         ED['CdtrSchmeIdNode'] = ET.Element("CdtrSchmeId")
         ED['Nm_CdtrSchmeId_Node'] = ET.Element("Nm")
@@ -224,6 +233,9 @@ class SepaDD(SepaPaymentInitn):
         ED['FinInstnId_DbtrAgt_Node'] = ET.Element("FinInstnId")
         if bic:
             ED['BIC_DbtrAgt_Node'] = ET.Element("BIC")
+        else:
+            ED['Id_DbtrAgt_Node'] = ET.Element("Id")
+            ED['Othr_DbtrAgt_Node'] = ET.Element("Othr")
         ED['DbtrNode'] = ET.Element("Dbtr")
         ED['Nm_Dbtr_Node'] = ET.Element("Nm")
         ED['DbtrAcctNode'] = ET.Element("DbtrAcct")
@@ -263,6 +275,12 @@ class SepaDD(SepaPaymentInitn):
         if 'BIC' in self._config:
             PmtInf_nodes['FinInstnId_CdtrAgt_Node'].append(
                 PmtInf_nodes['BIC_CdtrAgt_Node'])
+        else:
+            PmtInf_nodes['Othr_CdtrAgt_Node'].append(
+                PmtInf_nodes['Id_CdtrAgt_Node'])
+            PmtInf_nodes['FinInstnId_CdtrAgt_Node'].append(
+                PmtInf_nodes['Othr_CdtrAgt_Node'])
+
         PmtInf_nodes['CdtrAgtNode'].append(
             PmtInf_nodes['FinInstnId_CdtrAgt_Node'])
         PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['CdtrAgtNode'])
@@ -292,6 +310,11 @@ class SepaDD(SepaPaymentInitn):
         if 'BIC_DbtrAgt_Node' in TX_nodes and TX_nodes['BIC_DbtrAgt_Node'].text is not None:
             TX_nodes['FinInstnId_DbtrAgt_Node'].append(
                 TX_nodes['BIC_DbtrAgt_Node'])
+        elif self.schema != 'pain.008.001.02' and self.schema != 'pain.008.002.02':
+            TX_nodes['Othr_DbtrAgt_Node'].append(
+                TX_nodes['Id_DbtrAgt_Node'])
+            TX_nodes['FinInstnId_DbtrAgt_Node'].append(
+                TX_nodes['Othr_DbtrAgt_Node'])
         TX_nodes['DbtrAgtNode'].append(TX_nodes['FinInstnId_DbtrAgt_Node'])
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['DbtrAgtNode'])
 
@@ -326,6 +349,11 @@ class SepaDD(SepaPaymentInitn):
         if 'BIC_DbtrAgt_Node' in TX_nodes and TX_nodes['BIC_DbtrAgt_Node'].text is not None:
             TX_nodes['FinInstnId_DbtrAgt_Node'].append(
                 TX_nodes['BIC_DbtrAgt_Node'])
+        elif self.schema != 'pain.008.001.02' and self.schema != 'pain.008.002.02':
+            TX_nodes['Othr_DbtrAgt_Node'].append(
+                TX_nodes['Id_DbtrAgt_Node'])
+            TX_nodes['FinInstnId_DbtrAgt_Node'].append(
+                TX_nodes['Othr_DbtrAgt_Node'])
         TX_nodes['DbtrAgtNode'].append(TX_nodes['FinInstnId_DbtrAgt_Node'])
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['DbtrAgtNode'])
 
@@ -382,6 +410,8 @@ class SepaDD(SepaPaymentInitn):
 
             if 'BIC' in self._config:
                 PmtInf_nodes['BIC_CdtrAgt_Node'].text = self._config['BIC']
+            else:
+                PmtInf_nodes['Id_CdtrAgt_Node'].text = "NOTPROVIDED"
 
             PmtInf_nodes['ChrgBrNode'].text = "SLEV"
             PmtInf_nodes['Nm_CdtrSchmeId_Node'].text = self._config['name']
@@ -418,6 +448,12 @@ class SepaDD(SepaPaymentInitn):
             if 'BIC' in self._config:
                 PmtInf_nodes['FinInstnId_CdtrAgt_Node'].append(
                     PmtInf_nodes['BIC_CdtrAgt_Node'])
+            else:
+                PmtInf_nodes['Othr_CdtrAgt_Node'].append(
+                    PmtInf_nodes['Id_CdtrAgt_Node'])
+                PmtInf_nodes['FinInstnId_CdtrAgt_Node'].append(
+                    PmtInf_nodes['Othr_CdtrAgt_Node'])
+
             PmtInf_nodes['CdtrAgtNode'].append(
                 PmtInf_nodes['FinInstnId_CdtrAgt_Node'])
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['CdtrAgtNode'])
