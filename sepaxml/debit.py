@@ -453,7 +453,7 @@ class SepaDD(SepaPaymentInitn):
                     PmtInf_nodes['Id_CdtrAgt_Node'])
                 PmtInf_nodes['FinInstnId_CdtrAgt_Node'].append(
                     PmtInf_nodes['Othr_CdtrAgt_Node'])
-            
+
             PmtInf_nodes['CdtrAgtNode'].append(
                 PmtInf_nodes['FinInstnId_CdtrAgt_Node'])
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['CdtrAgtNode'])

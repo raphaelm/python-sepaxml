@@ -12,7 +12,7 @@ def sdd():
     return SepaDD({
         "name": "TestCreditor",
         "IBAN": "NL50BANK1234567890",
-        #"BIC": "BANKNL2A",
+        # "BIC": "BANKNL2A",
         "batch": True,
         "creditor_id": "DE26ZZZ00000000000",
         "currency": "EUR"
