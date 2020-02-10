@@ -240,7 +240,7 @@ class SepaTransfer(SepaPaymentInitn):
         TX_nodes['CdtTrfTxInfNode'].append(TX_nodes['PmtIdNode'])
         TX_nodes['CdtTrfTxInfNode'].append(TX_nodes['AmtNode'])
 
-        if TX_nodes['BIC_CdtrAgt_Node'].text is not None:
+        if 'BIC_CdtrAgt_Node' in TX_nodes and TX_nodes['BIC_CdtrAgt_Node'].text is not None:
             TX_nodes['FinInstnId_CdtrAgt_Node'].append(
                 TX_nodes['BIC_CdtrAgt_Node'])
         TX_nodes['CdtrAgtNode'].append(TX_nodes['FinInstnId_CdtrAgt_Node'])
@@ -270,7 +270,7 @@ class SepaTransfer(SepaPaymentInitn):
         TX_nodes['CdtTrfTxInfNode'].append(TX_nodes['PmtIdNode'])
         TX_nodes['CdtTrfTxInfNode'].append(TX_nodes['AmtNode'])
 
-        if TX_nodes['BIC_CdtrAgt_Node'].text is not None:
+        if 'BIC_CdtrAgt_Node' in TX_nodes and TX_nodes['BIC_CdtrAgt_Node'].text is not None:
             TX_nodes['FinInstnId_CdtrAgt_Node'].append(
                 TX_nodes['BIC_CdtrAgt_Node'])
         TX_nodes['CdtrAgtNode'].append(TX_nodes['FinInstnId_CdtrAgt_Node'])
