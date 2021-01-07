@@ -78,6 +78,7 @@ Example:
         "IBAN": "NL50BANK1234567890",
         "BIC": "BANKNL2A",
         "batch": True,
+        # For non-SEPA transfers, set "domestic", necessary e.g. for CH/LI
         "currency": "EUR",  # ISO 4217
     }
     sepa = SepaTransfer(config, clean=True)
@@ -94,6 +95,7 @@ Example:
     sepa.add_payment(payment)
 
     print(sepa.export(validate=True))
+
 
 Development
 -----------
