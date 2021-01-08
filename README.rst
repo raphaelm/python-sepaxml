@@ -44,7 +44,7 @@ Example:
         "currency": "EUR",  # ISO 4217
         # "instrument": "B2B"  # - default is CORE (B2C)
     }
-    sepa = SepaDD(config, schema="pain.008.002.02", clean=True)
+    sepa = SepaDD(config, schema="pain.008.001.02", clean=True)
 
     payment = {
         "name": "Test von Testenstein",
