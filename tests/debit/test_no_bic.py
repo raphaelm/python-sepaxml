@@ -69,7 +69,6 @@ SAMPLE_RESULT = b"""
       </CdtrAgt>
       <ChrgBr>SLEV</ChrgBr>
       <CdtrSchmeId>
-        <Nm>TestCreditor</Nm>
         <Id>
           <PrvtId>
             <Othr>
@@ -139,7 +138,6 @@ SAMPLE_RESULT = b"""
       </CdtrAgt>
       <ChrgBr>SLEV</ChrgBr>
       <CdtrSchmeId>
-        <Nm>TestCreditor</Nm>
         <Id>
           <PrvtId>
             <Othr>
