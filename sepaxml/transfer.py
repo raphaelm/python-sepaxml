@@ -86,7 +86,7 @@ class SepaTransfer(SepaPaymentInitn):
             PmtInf_nodes['CtrlSumNode'].text = int_to_decimal_str(
                 payment['amount']
             )
-            if 'domestic' not in self._config:
+            if not self._config.get('domestic', False):
                 PmtInf_nodes['Cd_SvcLvl_Node'].text = "SEPA"
             if 'execution_date' in payment:
                 PmtInf_nodes['ReqdExctnDtNode'].text = payment['execution_date']
@@ -165,7 +165,7 @@ class SepaTransfer(SepaPaymentInitn):
         ED['NbOfTxsNode'] = ET.Element("NbOfTxs")
         ED['CtrlSumNode'] = ET.Element("CtrlSum")
         ED['PmtTpInfNode'] = ET.Element("PmtTpInf")
-        if 'domestic' not in self._config:
+        if not self._config.get('domestic', False):
             ED['SvcLvlNode'] = ET.Element("SvcLvl")
             ED['Cd_SvcLvl_Node'] = ET.Element("Cd")
         ED['ReqdExctnDtNode'] = ET.Element("ReqdExctnDt")
@@ -217,7 +217,7 @@ class SepaTransfer(SepaPaymentInitn):
         PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['NbOfTxsNode'])
         PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['CtrlSumNode'])
 
-        if 'domestic' not in self._config:
+        if not self._config.get('domestic', False):
             PmtInf_nodes['SvcLvlNode'].append(PmtInf_nodes['Cd_SvcLvl_Node'])
             PmtInf_nodes['PmtTpInfNode'].append(PmtInf_nodes['SvcLvlNode'])
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['PmtTpInfNode'])
@@ -322,7 +322,7 @@ class SepaTransfer(SepaPaymentInitn):
             PmtInf_nodes['PmtInfIdNode'].text = make_id(self._config['name'])
             PmtInf_nodes['PmtMtdNode'].text = "TRF"
             PmtInf_nodes['BtchBookgNode'].text = "true"
-            if 'domestic' not in self._config:
+            if not self._config.get('domestic', False):
                 PmtInf_nodes['Cd_SvcLvl_Node'].text = "SEPA"
 
             if batch_meta:
@@ -346,7 +346,7 @@ class SepaTransfer(SepaPaymentInitn):
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['NbOfTxsNode'])
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['CtrlSumNode'])
 
-            if 'domestic' not in self._config:
+            if not self._config.get('domestic', False):
                 PmtInf_nodes['SvcLvlNode'].append(PmtInf_nodes['Cd_SvcLvl_Node'])
                 PmtInf_nodes['PmtTpInfNode'].append(PmtInf_nodes['SvcLvlNode'])
                 PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['PmtTpInfNode'])
