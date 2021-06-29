@@ -1,8 +1,8 @@
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
 
-from .utils import decimal_str_to_int, int_to_decimal_str, make_msg_id
-from .validation import try_valid_xml
+from utils import decimal_str_to_int, int_to_decimal_str, make_msg_id, make_id
+from validation import try_valid_xml
 
 
 class SepaPaymentInitn:
@@ -29,27 +29,36 @@ class SepaPaymentInitn:
                 from text_unidecode import unidecode
 
                 self._config['name'] = unidecode(self._config['name'])[:70]
+                self._config["unique_id"] = make_id(self._config['name'])
 
         self._prepare_document()
         self._create_header()
+        self._PmtInf_Nodes()
 
     def _prepare_document(self):
         """
         Build the main document node and set xml namespaces.
         """
-        self._xml = ET.Element("Document")
+        self._xml = ET.Element("CBIPaymentRequest")
+        self._xml.set("xsi:schemaLocation",
+                      "urn:CBI:xsd:CBIPaymentRequest.00.04.00 " + self.schema + ".xsd")
         self._xml.set("xmlns",
-                      "urn:iso:std:iso:20022:tech:xsd:" + self.schema)
+                      "urn:CBI:xsd:" + self.schema)
         self._xml.set("xmlns:xsi",
                       "http://www.w3.org/2001/XMLSchema-instance")
         ET.register_namespace("",
-                              "urn:iso:std:iso:20022:tech:xsd:" + self.schema)
+                              "urn:CBI:xsd:" + self.schema)
         ET.register_namespace("xsi",
                               "http://www.w3.org/2001/XMLSchema-instance")
-        n = ET.Element(self.root_el)
-        self._xml.append(n)
+        n1 = ET.Element(self.root_el_g)
+        self._xml.append(n1)
+        n2 = ET.Element(self.root_el_p)
+        self._xml.append(n2)
 
     def _create_header(self):
+        raise NotImplementedError()
+
+    def _PmtInf_Nodes(self):
         raise NotImplementedError()
 
     def _finalize_batch(self):
@@ -66,18 +75,18 @@ class SepaPaymentInitn:
         ctrl_sum_total = 0
         nb_of_txs_total = 0
 
-        for ctrl_sum in self._xml.iter('CtrlSum'):
+        for ctrl_sum in self._xml.iter('InstdAmt'):
             if ctrl_sum.text is None:
                 continue
             ctrl_sum_total += decimal_str_to_int(ctrl_sum.text)
 
-        for nb_of_txs in self._xml.iter('NbOfTxs'):
-            if nb_of_txs.text is None:
-                continue
-            nb_of_txs_total += int(nb_of_txs.text)
+        for nb_of_txs in self._xml.iter('CdtTrfTxInf'):
+            nb_of_txs_total += 1
+            PmtIdNode = nb_of_txs.find('PmtId')
+            InstrId_Node = PmtIdNode.find('InstrId')
+            InstrId_Node.text = str(nb_of_txs_total)
 
-        n = self._xml.find(self.root_el)
-        GrpHdr_node = n.find('GrpHdr')
+        GrpHdr_node = self._xml.find('GrpHdr')
         CtrlSum_node = GrpHdr_node.find('CtrlSum')
         NbOfTxs_node = GrpHdr_node.find('NbOfTxs')
         CtrlSum_node.text = int_to_decimal_str(ctrl_sum_total)
