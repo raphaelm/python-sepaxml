@@ -73,7 +73,7 @@ Example:
     output = sepa.export(validate=True).decode('utf-8')
     print(output)
     
-    with open(r"C:\Users\jibin_000\Desktop\new_cbi_strds\output.xml", "w") as f:
+    with open(r"C:\Path\to\your\output\folder\output.xml", "w") as f:
         f.write(output)
 
 
