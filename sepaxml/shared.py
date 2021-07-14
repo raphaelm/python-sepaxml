@@ -55,11 +55,13 @@ class SepaPaymentInitn:
     def _finalize_batch(self):
         raise NotImplementedError()
 
-    def export(self, validate=True):
+    def export(self, validate=True, pretty_print=False):
         """
         Method to output the xml as string. It will finalize the batches and
         then calculate the checksums (amount sum and transaction count),
         fill these into the group header and output the XML.
+
+        @param pretty_print: uses Python's xml.dom.minidom.Node.toprettyxml to make it easier to read for humans
         """
         self._finalize_batch()
 
@@ -87,6 +89,12 @@ class SepaPaymentInitn:
         # automatically if you write to a file, which we don't necessarily want.
         out = b"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + ET.tostring(
             self._xml, "utf-8")
+
+        if pretty_print:
+            from xml.dom import minidom
+            out_minidom = minidom.parseString(out)
+            out = out_minidom.toprettyxml(encoding="utf-8")
+
         if validate:
             try_valid_xml(out, self.schema)
         return out
