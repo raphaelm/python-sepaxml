@@ -1,1 +1,2 @@
 recursive-include sepaxml/schemas *
+include LICENSE
