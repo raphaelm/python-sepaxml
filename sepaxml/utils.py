@@ -1,3 +1,4 @@
+import datetime
 import hashlib
 import random
 import re
@@ -43,7 +44,7 @@ def make_msg_id():
     @return: string consisting of timestamp, -, random value
     """
     random_string = get_rand_string(12)
-    timestamp = time.strftime("%Y%m%d%I%M%S")
+    timestamp = datetime.datetime.now().strftime("%Y%m%d%I%M%S")
     msg_id = timestamp + "-" + random_string
     return msg_id
 

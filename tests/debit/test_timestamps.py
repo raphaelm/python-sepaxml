@@ -28,24 +28,14 @@ def today(now):
 
 
 @pytest.fixture
-def freeze_time(now):
-    import time
-
-    def _strftime(pattern):
-        return time.strftime(pattern, now.timetuple())
-
-    _time = mock.Mock(time=time.time, strftime=_strftime)
-    with mock.patch("sepaxml.utils.time", _time):
-        yield
-
-
-@pytest.fixture
 def freeze_datetime(now):
     _datetime = mock.Mock(
         date=datetime.date,
         datetime=mock.Mock(now=mock.Mock(return_value=now)),
     )
-    with mock.patch("sepaxml.debit.datetime", _datetime):
+    with mock.patch("sepaxml.debit.datetime", _datetime), mock.patch(
+        "sepaxml.utils.datetime", _datetime
+    ):
         yield
 
 
@@ -226,7 +216,7 @@ SAMPLE_RESULT = b"""
 </Document>
 """
 
-@pytest.mark.usefixtures("freeze_random", "freeze_time", "freeze_datetime")
+@pytest.mark.usefixtures("freeze_random", "freeze_datetime")
 def test_two_debits(sdd, today):
     payment1 = {
         "name": "Test & Co.",
