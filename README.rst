@@ -89,7 +89,7 @@ Example:
         "IBAN": "NL50BANK1234567890",
         "BIC": "BANKNL2A",
         "amount": 5000,  # in cents
-        "execution_date": datetime.date.today(),
+        "execution_date": datetime.date.today() + datetime.timedelta(days=2),
         "description": "Test transaction",
         # "endtoend_id": str(uuid.uuid1())  # optional
     }
