@@ -11,7 +11,7 @@ class SepaDD(SepaPaymentInitn):
     """
     root_el = "CstmrDrctDbtInitn"
 
-    def __init__(self, config, schema="pain.008.001.02", clean=True):
+    def __init__(self, config, schema="pain.008.003.02", clean=True):
         if "instrument" not in config:
             config["instrument"] = "CORE"
         super().__init__(config, schema, clean)

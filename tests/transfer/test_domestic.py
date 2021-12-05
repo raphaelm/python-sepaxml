@@ -55,9 +55,6 @@ SAMPLE_RESULT = b"""
         <Amt>
           <InstdAmt Ccy="CHF">10.12</InstdAmt>
         </Amt>
-        <CdtrAgt>
-          <FinInstnId/>
-        </CdtrAgt>
         <Cdtr>
           <Nm>Test von Testenstein</Nm>
         </Cdtr>
@@ -77,9 +74,6 @@ SAMPLE_RESULT = b"""
         <Amt>
           <InstdAmt Ccy="CHF">50.00</InstdAmt>
         </Amt>
-        <CdtrAgt>
-          <FinInstnId/>
-        </CdtrAgt>
         <Cdtr>
           <Nm>Test du Test</Nm>
         </Cdtr>
@@ -118,4 +112,4 @@ def test_two_domestic_debits(strf):
     strf.add_payment(payment2)
     xmlout = strf.export()
     xmlpretty = validate_xml(xmlout, "pain.001.001.03")
-    assert clean_ids(xmlpretty.strip()) == clean_ids(SAMPLE_RESULT.strip())
+    assert clean_ids(xmlpretty.strip()).decode() == clean_ids(SAMPLE_RESULT.strip()).decode()
