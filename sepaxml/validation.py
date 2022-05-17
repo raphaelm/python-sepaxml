@@ -14,5 +14,5 @@ def try_valid_xml(xmlout, schema):
     except xmlschema.XMLSchemaValidationError as e:
         raise ValidationError(
             "The output SEPA file contains validation errors. This is likely due to an illegal value in one of "
-            "your input fields."
+            f"your input fields.\nRaw xml error: {e}"
         ) from e
