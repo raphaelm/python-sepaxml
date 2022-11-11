@@ -4,7 +4,7 @@ from sepaxml import SepaDD
 
 
 def test_valid_config():
-    return SepaDD({
+    SepaDD({
         "name": "TestCreditor",
         "IBAN": "NL50BANK1234567890",
         "BIC": "BANKNL2A",
@@ -16,7 +16,7 @@ def test_valid_config():
 
 def test_invalid_config():
     with pytest.raises(Exception):
-        return SepaDD({
+        SepaDD({
             "name": "TestCreditor",
             "BIC": "BANKNL2A",
             "batch": True,
