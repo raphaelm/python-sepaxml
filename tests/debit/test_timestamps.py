@@ -216,6 +216,7 @@ SAMPLE_RESULT = b"""
 </Document>
 """
 
+
 @pytest.mark.usefixtures("freeze_random", "freeze_datetime")
 def test_two_debits(sdd, today):
     payment1 = {

@@ -2,7 +2,7 @@ import datetime
 import xml.etree.ElementTree as ET
 
 from .shared import SepaPaymentInitn
-from .utils import int_to_decimal_str, make_id
+from .utils import ADDRESS_MAPPING, int_to_decimal_str, make_id
 
 
 class SepaDD(SepaPaymentInitn):
@@ -120,6 +120,17 @@ class SepaDD(SepaPaymentInitn):
             TX_nodes['Id_DbtrAgt_Node'].text = "NOTPROVIDED"
 
         TX_nodes['Nm_Dbtr_Node'].text = payment['name']
+        if payment.get('address', {}):
+            for d, n in ADDRESS_MAPPING:
+                if payment['address'].get(d):
+                    n = ET.Element(n)
+                    n.text = payment['address'][d]
+                    TX_nodes['PstlAdr_Dbtr_Node'].append(n)
+            for line in payment['address'].get('lines', []):
+                n = ET.Element('AdrLine')
+                n.text = line
+                TX_nodes['PstlAdr_Dbtr_Node'].append(n)
+
         TX_nodes['IBAN_DbtrAcct_Node'].text = payment['IBAN']
         TX_nodes['UstrdNode'].text = payment['description']
         if not payment.get('endtoend_id', ''):
@@ -193,6 +204,7 @@ class SepaDD(SepaPaymentInitn):
         ED['ReqdColltnDtNode'] = ET.Element("ReqdColltnDt")
         ED['CdtrNode'] = ET.Element("Cdtr")
         ED['Nm_Cdtr_Node'] = ET.Element("Nm")
+        ED['PstlAdr_Cdtr_Node'] = ET.Element("PstlAdr")
         ED['CdtrAcctNode'] = ET.Element("CdtrAcct")
         ED['Id_CdtrAcct_Node'] = ET.Element("Id")
         ED['IBAN_CdtrAcct_Node'] = ET.Element("IBAN")
@@ -236,6 +248,7 @@ class SepaDD(SepaPaymentInitn):
             ED['Othr_DbtrAgt_Node'] = ET.Element("Othr")
         ED['DbtrNode'] = ET.Element("Dbtr")
         ED['Nm_Dbtr_Node'] = ET.Element("Nm")
+        ED['PstlAdr_Dbtr_Node'] = ET.Element("PstlAdr")
         ED['DbtrAcctNode'] = ET.Element("DbtrAcct")
         ED['Id_DbtrAcct_Node'] = ET.Element("Id")
         ED['IBAN_DbtrAcct_Node'] = ET.Element("IBAN")
@@ -263,6 +276,8 @@ class SepaDD(SepaPaymentInitn):
         PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ReqdColltnDtNode'])
 
         PmtInf_nodes['CdtrNode'].append(PmtInf_nodes['Nm_Cdtr_Node'])
+        if PmtInf_nodes['PstlAdr_Cdtr_Node']:
+            PmtInf_nodes['CdtrNode'].append(PmtInf_nodes['PstlAdr_Cdtr_Node'])
         PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['CdtrNode'])
 
         PmtInf_nodes['Id_CdtrAcct_Node'].append(
@@ -315,6 +330,8 @@ class SepaDD(SepaPaymentInitn):
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['DbtrAgtNode'])
 
         TX_nodes['DbtrNode'].append(TX_nodes['Nm_Dbtr_Node'])
+        if TX_nodes['PstlAdr_Dbtr_Node']:
+            TX_nodes['DbtrNode'].append(TX_nodes['PstlAdr_Dbtr_Node'])
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['DbtrNode'])
 
         TX_nodes['Id_DbtrAcct_Node'].append(TX_nodes['IBAN_DbtrAcct_Node'])
@@ -354,6 +371,8 @@ class SepaDD(SepaPaymentInitn):
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['DbtrAgtNode'])
 
         TX_nodes['DbtrNode'].append(TX_nodes['Nm_Dbtr_Node'])
+        if TX_nodes['PstlAdr_Dbtr_Node']:
+            TX_nodes['DbtrNode'].append(TX_nodes['PstlAdr_Dbtr_Node'])
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['DbtrNode'])
 
         TX_nodes['Id_DbtrAcct_Node'].append(TX_nodes['IBAN_DbtrAcct_Node'])
@@ -402,6 +421,16 @@ class SepaDD(SepaPaymentInitn):
             PmtInf_nodes['SeqTpNode'].text = batch_meta_split[0]
             PmtInf_nodes['ReqdColltnDtNode'].text = batch_meta_split[1]
             PmtInf_nodes['Nm_Cdtr_Node'].text = self._config['name']
+            if self._config.get('address', {}):
+                for d, n in ADDRESS_MAPPING:
+                    if self._config['address'].get(d):
+                        n = ET.Element(n)
+                        n.text = self._config['address'][d]
+                        PmtInf_nodes['PstlAdr_Cdtr_Node'].append(n)
+                for line in self._config['address'].get('lines', []):
+                    n = ET.Element('AdrLine')
+                    n.text = line
+                    PmtInf_nodes['PstlAdr_Cdtr_Node'].append(n)
             PmtInf_nodes['IBAN_CdtrAcct_Node'].text = self._config['IBAN']
 
             if 'BIC' in self._config:
@@ -432,6 +461,8 @@ class SepaDD(SepaPaymentInitn):
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ReqdColltnDtNode'])
 
             PmtInf_nodes['CdtrNode'].append(PmtInf_nodes['Nm_Cdtr_Node'])
+            if PmtInf_nodes['PstlAdr_Cdtr_Node']:
+                PmtInf_nodes['CdtrNode'].append(PmtInf_nodes['PstlAdr_Cdtr_Node'])
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['CdtrNode'])
 
             PmtInf_nodes['Id_CdtrAcct_Node'].append(

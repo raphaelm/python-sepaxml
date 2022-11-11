@@ -88,3 +88,16 @@ def decimal_str_to_int(decimal_string):
     int_string = decimal_string.replace('.', '')
     int_string = int_string.lstrip('0')
     return int(int_string)
+
+
+ADDRESS_MAPPING = (
+    ("address_type", "AdrTp"),
+    ("department", "Dept"),
+    ("subdepartment", "SubDept"),
+    ("street_name", "StrtNm"),
+    ("building_number", "BldgNb"),
+    ("postcode", "PstCd"),
+    ("town", "TwnNm"),
+    ("country_subdivision", "CtrySubDvsn"),
+    ("country", "Ctry"),
+)
