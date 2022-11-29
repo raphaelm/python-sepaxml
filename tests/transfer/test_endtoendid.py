@@ -16,7 +16,7 @@ def strf():
         "BIC": "BANKNL2A",
         "batch": True,
         "currency": "EUR"
-    })
+    }, schema="pain.001.003.03")
 
 
 SAMPLE_RESULT = b"""
