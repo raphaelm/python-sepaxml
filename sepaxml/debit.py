@@ -215,6 +215,20 @@ class SepaDD(SepaPaymentInitn):
         else:
             ED['Othr_CdtrAgt_Node'] = ET.Element("Othr")
             ED['Id_CdtrAgt_Node'] = ET.Element("Id")
+        if 'ultimate_creditor' in self._config:
+            ED['UltmtCdtrNode'] = ET.Element("UltmtCdtr")
+            if 'name' in self._config['ultimate_creditor']:
+                ED['Nm_UltmtCdtr_Node'] = ET.Element("Nm")
+            ED['Id_UltmtCdtr_Node'] = ET.Element("Id")
+            ED['OrgId_Id_UltmtCdtr_Node'] = ET.Element("OrgId")
+            if 'BIC_or_BEI' in self._config['ultimate_creditor']:
+                ED['BICOrBEI_OrgId_Id_UltmtCdtr_Node'] = ET.Element("BICOrBEI")
+            if 'id' in self._config['ultimate_creditor']:
+                ED['Othr_OrgId_Id_UltmtCdtr_Node'] = ET.Element("Othr")
+                ED['Id_Othr_OrgId_Id_UltmtCdtr_Node'] = ET.Element("Id")
+                if 'id_scheme_name' in self._config['ultimate_creditor']:
+                    ED['SchmeNm_Othr_OrgId_Id_UltmtCdtr_Node'] = ET.Element("SchmeNm")
+                    ED['Prtry_SchmeNm_Othr_OrgId_Id_UltmtCdtr_Node'] = ET.Element("Prtry")
         ED['ChrgBrNode'] = ET.Element("ChrgBr")
         ED['CdtrSchmeIdNode'] = ET.Element("CdtrSchmeId")
         ED['Id_CdtrSchmeId_Node'] = ET.Element("Id")
@@ -445,6 +459,16 @@ class SepaDD(SepaPaymentInitn):
             PmtInf_nodes['NbOfTxsNode'].text = str(len(batch_nodes))
             PmtInf_nodes['CtrlSumNode'].text = int_to_decimal_str(self._batch_totals[batch_meta])
 
+            if 'ultimate_creditor' in self._config:
+                if 'name' in self._config['ultimate_creditor']:
+                    PmtInf_nodes['Nm_UltmtCdtr_Node'].text = self._config['ultimate_creditor']['name']
+                if 'BIC_or_BEI' in self._config['ultimate_creditor']:
+                    PmtInf_nodes['BICOrBEI_OrgId_Id_UltmtCdtr_Node'].text = self._config['ultimate_creditor']['BIC_or_BEI']
+                if 'id' in self._config['ultimate_creditor']:
+                    PmtInf_nodes['Id_Othr_OrgId_Id_UltmtCdtr_Node'].text = self._config['ultimate_creditor']['id']
+                if 'id_scheme_name' in self._config['ultimate_creditor']:
+                    PmtInf_nodes['Prtry_SchmeNm_Othr_OrgId_Id_UltmtCdtr_Node'].text = self._config['ultimate_creditor']['id_scheme_name']
+
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['PmtInfIdNode'])
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['PmtMtdNode'])
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['BtchBookgNode'])
@@ -483,6 +507,29 @@ class SepaDD(SepaPaymentInitn):
             PmtInf_nodes['CdtrAgtNode'].append(
                 PmtInf_nodes['FinInstnId_CdtrAgt_Node'])
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['CdtrAgtNode'])
+
+            if 'ultimate_creditor' in self._config:
+                if 'BIC_or_BEI' in self._config['ultimate_creditor']:
+                    PmtInf_nodes['OrgId_Id_UltmtCdtr_Node'].append(
+                        PmtInf_nodes['BICOrBEI_OrgId_Id_UltmtCdtr_Node'])
+                PmtInf_nodes['Id_UltmtCdtr_Node'].append(
+                    PmtInf_nodes['OrgId_Id_UltmtCdtr_Node'])
+                if 'id' in self._config['ultimate_creditor']:
+                    PmtInf_nodes['Othr_OrgId_Id_UltmtCdtr_Node'].append(
+                        PmtInf_nodes['Id_Othr_OrgId_Id_UltmtCdtr_Node'])
+                    if 'id_scheme_name' in self._config['ultimate_creditor']:
+                        PmtInf_nodes['SchmeNm_Othr_OrgId_Id_UltmtCdtr_Node'].append(
+                            PmtInf_nodes['Prtry_SchmeNm_Othr_OrgId_Id_UltmtCdtr_Node'])
+                        PmtInf_nodes['Othr_OrgId_Id_UltmtCdtr_Node'].append(
+                            PmtInf_nodes['SchmeNm_Othr_OrgId_Id_UltmtCdtr_Node'])
+                    PmtInf_nodes['OrgId_Id_UltmtCdtr_Node'].append(
+                        PmtInf_nodes['Othr_OrgId_Id_UltmtCdtr_Node'])
+                if 'name' in self._config['ultimate_creditor']:
+                    PmtInf_nodes['UltmtCdtrNode'].append(
+                        PmtInf_nodes['Nm_UltmtCdtr_Node'])
+                PmtInf_nodes['UltmtCdtrNode'].append(
+                    PmtInf_nodes['Id_UltmtCdtr_Node'])
+                PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['UltmtCdtrNode'])
 
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ChrgBrNode'])
 

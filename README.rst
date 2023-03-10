@@ -57,6 +57,13 @@ Example:
             "country_subdivision": None,
             "lines": ["Line 1", "Line 2"],
         },
+        "ultimate_creditor": {
+            # The ultimate_creditor and all of its fields are optional but in some financial institution they are required
+            "name": "Real Creditor",
+            "BIC_or_BEI": "REALNL2A",
+            "id": "12345678900001", # can be a local official id or the creditor_id
+            "id_scheme_name": "SIRET", # proprietary scheme of the id provided (i.e. SEPA, SIRET...)
+        },
     }
     sepa = SepaDD(config, schema="pain.008.001.02", clean=True)
 
