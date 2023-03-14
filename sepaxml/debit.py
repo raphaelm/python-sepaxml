@@ -135,7 +135,7 @@ class SepaDD(SepaPaymentInitn):
         TX_nodes['UstrdNode'].text = payment['description']
         if not payment.get('endtoend_id', ''):
             payment['endtoend_id'] = make_id(self._config['name'])
-        TX_nodes['EndToEndIdNode'].text = payment['endtoend_id']
+        TX_nodes['EndToEndIdNode'].text = payment['endtoend_id'][:35]
 
         if self._config['batch']:
             self._add_batch(TX_nodes, payment)
