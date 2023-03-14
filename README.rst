@@ -37,6 +37,7 @@ Example:
     import datetime, uuid
 
     config = {
+        # "msg_id": "", # If your bank require a specific format for MsgId, you can optionnaly set it up here. Default will be randomly generated with timestamp followed by a random value.
         "name": "Test von Testenstein",
         "IBAN": "NL50BANK1234567890",
         "BIC": "BANKNL2A",
@@ -108,6 +109,7 @@ Example:
     import datetime, uuid
 
     config = {
+        # "msg_id": "", # If your bank require a specific message_id format, you can set it up here. Default will be randomly generated with timestamp followed by a random value.
         "name": "Test von Testenstein",
         "IBAN": "NL50BANK1234567890",
         "BIC": "BANKNL2A",
