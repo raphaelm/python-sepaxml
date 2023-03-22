@@ -114,6 +114,7 @@ class SepaDD(SepaPaymentInitn):
 
         TX_nodes['MndtIdNode'].text = payment['mandate_id']
         TX_nodes['DtOfSgntrNode'].text = payment['mandate_date']
+        TX_nodes['AmdmntIndNode'].text = 'false'
         if bic:
             TX_nodes['BIC_DbtrAgt_Node'].text = payment['BIC']
         else:
@@ -253,6 +254,7 @@ class SepaDD(SepaPaymentInitn):
         ED['MndtRltdInfNode'] = ET.Element("MndtRltdInf")
         ED['MndtIdNode'] = ET.Element("MndtId")
         ED['DtOfSgntrNode'] = ET.Element("DtOfSgntr")
+        ED['AmdmntIndNode'] = ET.Element("AmdmntInd")
         ED['DbtrAgtNode'] = ET.Element("DbtrAgt")
         ED['FinInstnId_DbtrAgt_Node'] = ET.Element("FinInstnId")
         if bic:
@@ -329,6 +331,7 @@ class SepaDD(SepaPaymentInitn):
 
         TX_nodes['MndtRltdInfNode'].append(TX_nodes['MndtIdNode'])
         TX_nodes['MndtRltdInfNode'].append(TX_nodes['DtOfSgntrNode'])
+        TX_nodes['MndtRltdInfNode'].append(TX_nodes['AmdmntIndNode'])
         TX_nodes['DrctDbtTxNode'].append(TX_nodes['MndtRltdInfNode'])
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['DrctDbtTxNode'])
 
@@ -370,6 +373,7 @@ class SepaDD(SepaPaymentInitn):
 
         TX_nodes['MndtRltdInfNode'].append(TX_nodes['MndtIdNode'])
         TX_nodes['MndtRltdInfNode'].append(TX_nodes['DtOfSgntrNode'])
+        TX_nodes['MndtRltdInfNode'].append(TX_nodes['AmdmntIndNode'])
         TX_nodes['DrctDbtTxNode'].append(TX_nodes['MndtRltdInfNode'])
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['DrctDbtTxNode'])
 
