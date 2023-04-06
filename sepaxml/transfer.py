@@ -167,9 +167,9 @@ class SepaTransfer(SepaPaymentInitn):
         MsgId_node.text = self.msg_id
         CreDtTm_node.text = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         Nm_node.text = self._config['name']
-        if 'initiating_party' in self._config:
+        if 'initiating_party' in self._config and self._config['initiating_party']:
             Nm_node.text = self._config['initiating_party']
-        if 'initiating_party_id' in self._config:
+        if 'initiating_party_id' in self._config and self._config['initiating_party_id']:
             Id_node.text = self._config['initiating_party_id']
 
         # Append the nodes
