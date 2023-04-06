@@ -58,6 +58,8 @@ Example:
             "country_subdivision": None,
             "lines": ["Line 1", "Line 2"],
         },
+        # "initiating_party": "John Doe", # optional name of the initiator of the payment, required by some banks. default to ''name'
+        # "initiating_party_id": "DE26ZZZ00000000002", # optional, supplied by your bank or financial authority. default to 'creditor_id'
         "ultimate_creditor": {
             # The ultimate_creditor and all of its fields are optional but in some financial institution they are required
             "name": "Real Creditor",
@@ -92,6 +94,8 @@ Example:
             "country_subdivision": None,
             "lines": ["Line 1", "Line 2"],
         },
+        # "initiating_party": "John Doe", # optional name of the initiator of the payment, required by some banks. default to ''name'
+        # "initiating_party_id": "DE26ZZZ00000000002", # optional, supplied by your bank or financial authority. default to 'creditor_id'
     }
     sepa.add_payment(payment)
 

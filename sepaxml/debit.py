@@ -168,7 +168,11 @@ class SepaDD(SepaPaymentInitn):
         MsgId_node.text = self.msg_id
         CreDtTm_node.text = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         Nm_node.text = self._config['name']
+        if 'initiating_party' in self._config:
+            Nm_node.text = self._config['initiating_party']
         Id_node.text = self._config['creditor_id']
+        if 'initiating_party_id' in self._config:
+            Id_node.text = self._config['initiating_party_id']
 
         # Append the nodes
         Othr_node.append(Id_node)

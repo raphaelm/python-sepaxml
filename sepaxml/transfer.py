@@ -158,14 +158,27 @@ class SepaTransfer(SepaPaymentInitn):
         CtrlSum_node = ET.Element("CtrlSum")
         InitgPty_node = ET.Element("InitgPty")
         Nm_node = ET.Element("Nm")
+        SupId_node = ET.Element("Id")
+        OrgId_node = ET.Element("OrgId")
+        Othr_node = ET.Element("Othr")
+        Id_node = ET.Element("Id")
 
         # Add data to some header nodes.
         MsgId_node.text = self.msg_id
         CreDtTm_node.text = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         Nm_node.text = self._config['name']
+        if 'initiating_party' in self._config:
+            Nm_node.text = self._config['initiating_party']
+        if 'initiating_party_id' in self._config:
+            Id_node.text = self._config['initiating_party_id']
 
         # Append the nodes
+        Othr_node.append(Id_node)
+        OrgId_node.append(Othr_node)
+        SupId_node.append(OrgId_node)
         InitgPty_node.append(Nm_node)
+        if 'initiating_party_id' in self._config:
+            InitgPty_node.append(SupId_node)
         GrpHdr_node.append(MsgId_node)
         GrpHdr_node.append(CreDtTm_node)
         GrpHdr_node.append(NbOfTxs_node)
