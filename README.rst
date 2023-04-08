@@ -170,6 +170,11 @@ This basically started as a properly packaged, python 3 tested version
 of the `PySepaDD`_ implementation that was released by The Congressus under the MIT license.
 Thanks for your work!
 
-License: MIT
+The source code is released under MIT license.
+
+Not part of the MIT-licensed project are the XML schemas in the ``sepaxml/schemas/``
+folder which are copyrighted by the ISO 20022 organization but `allowed to be reproduced`_
+freely.
 
 .. _PySepaDD: https://github.com/congressus/PySepaDD
+.. _allowed to be reproduced: https://www.iso20022.org/terms-use
