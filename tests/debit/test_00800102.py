@@ -3,6 +3,7 @@ import datetime
 import pytest
 
 from sepaxml import SepaDD
+from sepaxml.validation import ValidationError
 from tests.utils import clean_ids, validate_xml
 
 

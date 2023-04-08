@@ -48,11 +48,11 @@ def sdd():
         "batch": True,
         "creditor_id": "DE26ZZZ00000000000",
         "currency": "EUR"
-    }, schema="pain.008.003.02")
+    }, schema="pain.008.001.02")
 
 
 SAMPLE_RESULT = b"""
-<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.003.02" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.001.02" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <CstmrDrctDbtInitn>
     <GrpHdr>
       <MsgId>20211002081735-9050218037f5</MsgId>
@@ -247,5 +247,5 @@ def test_two_debits(sdd, today):
     sdd.add_payment(payment1)
     sdd.add_payment(payment2)
     xmlout = sdd.export()
-    xmlpretty = validate_xml(xmlout, "pain.008.003.02")
+    xmlpretty = validate_xml(xmlout, "pain.008.001.02")
     assert xmlpretty.strip() == SAMPLE_RESULT.strip()

@@ -32,7 +32,7 @@ class SepaDD(SepaPaymentInitn):
     """
     root_el = "CstmrDrctDbtInitn"
 
-    def __init__(self, config, schema="pain.008.003.02", clean=True):
+    def __init__(self, config, schema="pain.008.001.02", clean=True):
         if "instrument" not in config:
             config["instrument"] = "CORE"
         super().__init__(config, schema, clean)
@@ -46,7 +46,7 @@ class SepaDD(SepaPaymentInitn):
         """
         validation = ""
         required = ["name", "IBAN", "batch", "creditor_id", "currency"]
-        if self.schema == 'pain.008.001.02' or self.schema == 'pain.008.002.02':
+        if self.schema == 'pain.008.001.02':
             required += ["BIC"]
 
         for config_item in required:
@@ -342,7 +342,7 @@ class SepaDD(SepaPaymentInitn):
         if 'BIC_DbtrAgt_Node' in TX_nodes and TX_nodes['BIC_DbtrAgt_Node'].text is not None:
             TX_nodes['FinInstnId_DbtrAgt_Node'].append(
                 TX_nodes['BIC_DbtrAgt_Node'])
-        elif self.schema != 'pain.008.001.02' and self.schema != 'pain.008.002.02':
+        elif self.schema != 'pain.008.001.02':
             TX_nodes['Othr_DbtrAgt_Node'].append(
                 TX_nodes['Id_DbtrAgt_Node'])
             TX_nodes['FinInstnId_DbtrAgt_Node'].append(
@@ -383,7 +383,7 @@ class SepaDD(SepaPaymentInitn):
         if 'BIC_DbtrAgt_Node' in TX_nodes and TX_nodes['BIC_DbtrAgt_Node'].text is not None:
             TX_nodes['FinInstnId_DbtrAgt_Node'].append(
                 TX_nodes['BIC_DbtrAgt_Node'])
-        elif self.schema != 'pain.008.001.02' and self.schema != 'pain.008.002.02':
+        elif self.schema != 'pain.008.001.02':
             TX_nodes['Othr_DbtrAgt_Node'].append(
                 TX_nodes['Id_DbtrAgt_Node'])
             TX_nodes['FinInstnId_DbtrAgt_Node'].append(

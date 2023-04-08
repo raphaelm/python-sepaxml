@@ -18,10 +18,7 @@ Limitations
 Supported standards:
 
 * SEPA PAIN.001.001.03
-* SEPA PAIN.001.003.03
 * SEPA PAIN.008.001.02
-* SEPA PAIN.008.002.02
-* SEPA PAIN.008.003.02
 
 Usage
 -----

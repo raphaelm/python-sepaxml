@@ -47,11 +47,11 @@ def strf():
         "BIC": "BANKNL2A",
         "batch": True,
         "currency": "EUR"
-    }, schema="pain.001.003.03")
+    }, schema="pain.001.001.03")
 
 
 SAMPLE_RESULT = b"""
-<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.003.03" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <CstmrCdtTrfInitn>
     <GrpHdr>
       <MsgId>20211002081735-9050218037f5</MsgId>
@@ -193,5 +193,5 @@ def test_two_debits(strf, today):
     strf.add_payment(payment1)
     strf.add_payment(payment2)
     xmlout = strf.export()
-    xmlpretty = validate_xml(xmlout, "pain.001.003.03")
+    xmlpretty = validate_xml(xmlout, "pain.001.001.03")
     assert xmlpretty.strip() == SAMPLE_RESULT.strip()
