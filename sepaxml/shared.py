@@ -96,7 +96,7 @@ class SepaPaymentInitn:
         if pretty_print:
             from xml.dom import minidom
             out_minidom = minidom.parseString(out)
-            out = out_minidom.toprettyxml(encoding="utf-8")
+            out = out_minidom.toprettyxml(encoding="UTF-8")
 
         if validate:
             try_valid_xml(out, self.schema)
