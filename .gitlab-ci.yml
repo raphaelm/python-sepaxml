@@ -1,4 +1,6 @@
 pypi:
+    image:
+        name: pretix/ci-image
     script:
         - cat $PYPIRC > ~/.pypirc
         - pip install -U pip uv
