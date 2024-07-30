@@ -275,7 +275,31 @@ class SepaDD(SepaPaymentInitn):
         ED['IBAN_DbtrAcct_Node'] = ET.Element("IBAN")
         ED['RmtInfNode'] = ET.Element("RmtInf")
         ED['UstrdNode'] = ET.Element("Ustrd")
+        ED['AmdmntIndNode'] = ET.Element("AmdmntInd")
+        ED['AmdmntInfDtlsNode'] = self._create_AmdmntInfDtls_node()
         return ED
+
+    def _create_AmdmntInfDtls_node(self):
+        """
+        Create empty node to deal with cases when a debtor
+        changes account without changing SEPA mandate reference:
+        <AmdmntInfDtls>
+          <OrgnlDbtrAcct>
+            <Id>
+              <Othr>
+                <Id>SMNDA</Id>
+              </Othr>
+            </Id>
+          </OrgnlDbtrAcct>
+        </AmdmntInfDtls>
+        """
+        amendment_details = ET.Element("AmdmntInfDtls")
+        original_debtor_account = ET.SubElement(amendment_details, "OrgnlDbtrAcct")
+        original_debtor_account_id = ET.SubElement(original_debtor_account, "Id")
+        other = ET.SubElement(original_debtor_account_id, "Othr")
+        other_id = ET.SubElement(other, "Id")
+        other_id.text = "SMNDA"
+        return amendment_details
 
     def _add_non_batch(self, TX_nodes, PmtInf_nodes):
         """
@@ -377,6 +401,12 @@ class SepaDD(SepaPaymentInitn):
 
         TX_nodes['MndtRltdInfNode'].append(TX_nodes['MndtIdNode'])
         TX_nodes['MndtRltdInfNode'].append(TX_nodes['DtOfSgntrNode'])
+        if 'previous_IBAN' in payment:
+            previous_iban = payment.get('previous_IBAN')
+            if payment['IBAN'] != previous_iban:
+                TX_nodes['AmdmntIndNode'].text = 'true'
+                TX_nodes['MndtRltdInfNode'].append(TX_nodes['AmdmntIndNode'])
+                TX_nodes['MndtRltdInfNode'].append(TX_nodes['AmdmntInfDtlsNode'])
         TX_nodes['DrctDbtTxNode'].append(TX_nodes['MndtRltdInfNode'])
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['DrctDbtTxNode'])
 
