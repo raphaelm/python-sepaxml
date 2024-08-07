@@ -269,7 +269,7 @@ class SepaTransfer(SepaPaymentInitn):
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ReqdExctnDtNode'])
 
         PmtInf_nodes['DbtrNode'].append(PmtInf_nodes['Nm_Dbtr_Node'])
-        if PmtInf_nodes['PstlAdr_Dbtr_Node']:
+        if "PstlAdr_Dbtr_Node" in TX_nodes:
             PmtInf_nodes['DbtrNode'].append(TX_nodes['PstlAdr_Dbtr_Node'])
         PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['DbtrNode'])
 
@@ -297,7 +297,8 @@ class SepaTransfer(SepaPaymentInitn):
 
         TX_nodes['CdtrNode'].append(TX_nodes['Nm_Cdtr_Node'])
         if TX_nodes['PstlAdr_Cdtr_Node']:
-            TX_nodes['CdbtrNode'].append(TX_nodes['PstlAdr_Cdtr_Node'])
+            TX_nodes['CdtrNode'].append(TX_nodes['PstlAdr_Cdtr_Node'])
+
         TX_nodes['CdtTrfTxInfNode'].append(TX_nodes['CdtrNode'])
 
         TX_nodes['Id_CdtrAcct_Node'].append(TX_nodes['IBAN_CdtrAcct_Node'])
