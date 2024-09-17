@@ -342,7 +342,7 @@ class SepaDD(SepaPaymentInitn):
         if 'BIC_DbtrAgt_Node' in TX_nodes and TX_nodes['BIC_DbtrAgt_Node'].text is not None:
             TX_nodes['FinInstnId_DbtrAgt_Node'].append(
                 TX_nodes['BIC_DbtrAgt_Node'])
-        elif self.schema != 'pain.008.001.02':
+        else:
             TX_nodes['Othr_DbtrAgt_Node'].append(
                 TX_nodes['Id_DbtrAgt_Node'])
             TX_nodes['FinInstnId_DbtrAgt_Node'].append(
@@ -383,7 +383,7 @@ class SepaDD(SepaPaymentInitn):
         if 'BIC_DbtrAgt_Node' in TX_nodes and TX_nodes['BIC_DbtrAgt_Node'].text is not None:
             TX_nodes['FinInstnId_DbtrAgt_Node'].append(
                 TX_nodes['BIC_DbtrAgt_Node'])
-        elif self.schema != 'pain.008.001.02':
+        else:
             TX_nodes['Othr_DbtrAgt_Node'].append(
                 TX_nodes['Id_DbtrAgt_Node'])
             TX_nodes['FinInstnId_DbtrAgt_Node'].append(
