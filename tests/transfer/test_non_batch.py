@@ -162,3 +162,32 @@ def test_two_debits(strf):
     xmlpretty = validate_xml(xmlout, "pain.001.001.03")
     print(xmlpretty.decode())
     assert clean_ids(xmlpretty.strip()) == clean_ids(SAMPLE_RESULT.strip())
+
+
+def test_sepa_address(strf):
+    config = {
+        "name": "TestCreditor",
+        "IBAN": "NL50BANK1234567890",
+        "BIC": "BANKNL2A",
+        "batch": False,
+        "currency": "EUR",
+        "address": {
+            "country": "DE",
+            "lines": ["Line 1", "Line 2"],
+        },
+    }
+    payment1 = {
+        "endtoend_id": "ebd75e7e649375d91b33dc11ae44c0e1",
+        "name": "Test von Testenstein",
+        "IBAN": "NL50BANK1234567890",
+        "BIC": "BANKNL2A",
+        "amount": 1012,
+        "execution_date": datetime.date.today(),
+        "description": "Test transaction1",
+        "address": {
+            "country": "DE",
+            "lines": ["Line 1", "Line 2"],
+        },
+    }
+    strf = SepaTransfer(config)
+    strf.add_payment(payment1)
