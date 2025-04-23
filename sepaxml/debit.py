@@ -167,19 +167,27 @@ class SepaDD(SepaPaymentInitn):
         
         # Handle either structured or unstructured reference
         if 'description' in payment:
-            TX_nodes['UstrdNode'].text = payment['description']
+            # Use unstructured reference
+            ustrd_node = ET.Element("Ustrd")
+            ustrd_node.text = payment['description']
+            TX_nodes['RmtInfNode'].append(ustrd_node)
         elif 'structured_reference' in payment:
-            # Remove the UstrdNode
-            TX_nodes['RmtInfNode'].remove(TX_nodes['UstrdNode'])
+            # Use structured reference
+            strd_node = ET.Element("Strd")
+            cdtr_ref_inf_node = ET.Element("CdtrRefInf")
+            tp_node = ET.Element("Tp")
+            cd_or_prtry_node = ET.Element("CdOrPrtry")
+            cd_node = ET.Element("Cd")
+            cd_node.text = "SCOR"
+            ref_node = ET.Element("Ref")
+            ref_node.text = payment['structured_reference']
             
-            # Setup the structured reference elements
-            TX_nodes['RefNode'].text = payment['structured_reference']
-            TX_nodes['CdOrPrtryNode'].append(TX_nodes['CdNode'])
-            TX_nodes['TpNode'].append(TX_nodes['CdOrPrtryNode'])
-            TX_nodes['CdtrRefInfNode'].append(TX_nodes['TpNode'])
-            TX_nodes['CdtrRefInfNode'].append(TX_nodes['RefNode'])
-            TX_nodes['StrdNode'].append(TX_nodes['CdtrRefInfNode'])
-            TX_nodes['RmtInfNode'].append(TX_nodes['StrdNode'])
+            cd_or_prtry_node.append(cd_node)
+            tp_node.append(cd_or_prtry_node)
+            cdtr_ref_inf_node.append(tp_node)
+            cdtr_ref_inf_node.append(ref_node)
+            strd_node.append(cdtr_ref_inf_node)
+            TX_nodes['RmtInfNode'].append(strd_node)
             
         if not payment.get('endtoend_id', ''):
             payment['endtoend_id'] = make_id(self._config['name'])
@@ -301,16 +309,8 @@ class SepaDD(SepaPaymentInitn):
         ED['Id_DbtrAcct_Node'] = ET.Element("Id")
         ED['IBAN_DbtrAcct_Node'] = ET.Element("IBAN")
         ED['RmtInfNode'] = ET.Element("RmtInf")
-        ED['UstrdNode'] = ET.Element("Ustrd")
-        # Create nodes for structured reference
-        ED['StrdNode'] = ET.Element("Strd")
-        ED['CdtrRefInfNode'] = ET.Element("CdtrRefInf")
-        ED['TpNode'] = ET.Element("Tp")
-        ED['CdOrPrtryNode'] = ET.Element("CdOrPrtry")
-        ED['CdNode'] = ET.Element("Cd")
-        ED['RefNode'] = ET.Element("Ref")
-        # Set the default code
-        ED['CdNode'].text = "SCOR"
+        # We'll create UstrdNode or StrdNode elements on demand in add_payment
+        # instead of creating them here
         return ED
 
     def _add_non_batch(self, TX_nodes, PmtInf_nodes):
@@ -395,7 +395,6 @@ class SepaDD(SepaPaymentInitn):
         TX_nodes['DbtrAcctNode'].append(TX_nodes['Id_DbtrAcct_Node'])
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['DbtrAcctNode'])
 
-        TX_nodes['RmtInfNode'].append(TX_nodes['UstrdNode'])
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['RmtInfNode'])
         PmtInf_nodes['PmtInfNode'].append(TX_nodes['DrctDbtTxInfNode'])
         CstmrDrctDbtInitn_node = self._xml.find('CstmrDrctDbtInitn')
@@ -436,7 +435,6 @@ class SepaDD(SepaPaymentInitn):
         TX_nodes['DbtrAcctNode'].append(TX_nodes['Id_DbtrAcct_Node'])
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['DbtrAcctNode'])
 
-        TX_nodes['RmtInfNode'].append(TX_nodes['UstrdNode'])
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['RmtInfNode'])
         self._add_to_batch_list(TX_nodes, payment)
 
