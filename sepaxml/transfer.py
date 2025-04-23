@@ -61,7 +61,18 @@ class SepaTransfer(SepaPaymentInitn):
         encountered.
         """
         validation = ""
-        required = ["name", "IBAN", "amount", "description", "execution_date"]
+        # Maintain original required fields for backward compatibility
+        required = ["name", "IBAN", "amount", "execution_date"]
+        
+        # Don't allow both types of references
+        if 'description' in payment and 'structured_reference' in payment:
+            validation += "CANNOT_HAVE_BOTH_DESCRIPTION_AND_STRUCTURED_REFERENCE "
+        
+        # For backward compatibility: if structured_reference is not provided, description is required
+        # If structured_reference is provided, description becomes optional
+        if 'structured_reference' not in payment:
+            if 'description' not in payment:
+                validation += "DESCRIPTION_MISSING "
 
         for config_item in required:
             if config_item not in payment:
@@ -93,7 +104,8 @@ class SepaTransfer(SepaPaymentInitn):
             from text_unidecode import unidecode
 
             payment['name'] = unidecode(payment['name'])[:70]
-            payment['description'] = unidecode(payment['description'])[:140]
+            if 'description' in payment:
+                payment['description'] = unidecode(payment['description'])[:140]
 
         # Get the CstmrDrctDbtInitnNode
         if not self._config['batch']:
@@ -155,7 +167,22 @@ class SepaTransfer(SepaPaymentInitn):
                 TX_nodes['PstlAdr_Cdtr_Node'].append(n)
 
         TX_nodes['IBAN_CdtrAcct_Node'].text = payment['IBAN']
-        TX_nodes['UstrdNode'].text = payment['description']
+        
+        # Handle either structured or unstructured reference
+        if 'description' in payment:
+            TX_nodes['UstrdNode'].text = payment['description']
+        elif 'structured_reference' in payment:
+            # Remove the UstrdNode
+            TX_nodes['RmtInfNode'].remove(TX_nodes['UstrdNode'])
+            
+            # Setup the structured reference elements
+            TX_nodes['RefNode'].text = payment['structured_reference']
+            TX_nodes['CdOrPrtryNode'].append(TX_nodes['CdNode'])
+            TX_nodes['TpNode'].append(TX_nodes['CdOrPrtryNode'])
+            TX_nodes['CdtrRefInfNode'].append(TX_nodes['TpNode'])
+            TX_nodes['CdtrRefInfNode'].append(TX_nodes['RefNode'])
+            TX_nodes['StrdNode'].append(TX_nodes['CdtrRefInfNode'])
+            TX_nodes['RmtInfNode'].append(TX_nodes['StrdNode'])
 
         if self._config['batch']:
             self._add_batch(TX_nodes, payment)
@@ -248,6 +275,15 @@ class SepaTransfer(SepaPaymentInitn):
         ED['IBAN_CdtrAcct_Node'] = ET.Element("IBAN")
         ED['RmtInfNode'] = ET.Element("RmtInf")
         ED['UstrdNode'] = ET.Element("Ustrd")
+        # Create nodes for structured reference
+        ED['StrdNode'] = ET.Element("Strd")
+        ED['CdtrRefInfNode'] = ET.Element("CdtrRefInf")
+        ED['TpNode'] = ET.Element("Tp")
+        ED['CdOrPrtryNode'] = ET.Element("CdOrPrtry")
+        ED['CdNode'] = ET.Element("Cd")
+        ED['RefNode'] = ET.Element("Ref")
+        # Set the default code
+        ED['CdNode'].text = "SCOR"
         return ED
 
     def _add_non_batch(self, TX_nodes, PmtInf_nodes):
