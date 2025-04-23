@@ -168,18 +168,18 @@ class SepaDD(SepaPaymentInitn):
         # Handle either structured or unstructured reference
         if 'description' in payment:
             # Use unstructured reference
-            ustrd_node = ET.Element("Ustrd")
+            ustrd_node = ET.Element('Ustrd')
             ustrd_node.text = payment['description']
             TX_nodes['RmtInfNode'].append(ustrd_node)
         elif 'structured_reference' in payment:
             # Use structured reference
-            strd_node = ET.Element("Strd")
-            cdtr_ref_inf_node = ET.Element("CdtrRefInf")
-            tp_node = ET.Element("Tp")
-            cd_or_prtry_node = ET.Element("CdOrPrtry")
-            cd_node = ET.Element("Cd")
-            cd_node.text = "SCOR"
-            ref_node = ET.Element("Ref")
+            strd_node = ET.Element('Strd')
+            cdtr_ref_inf_node = ET.Element('CdtrRefInf')
+            tp_node = ET.Element('Tp')
+            cd_or_prtry_node = ET.Element('CdOrPrtry')
+            cd_node = ET.Element('Cd')
+            cd_node.text = 'SCOR'
+            ref_node = ET.Element('Ref')
             ref_node.text = payment['structured_reference']
             
             cd_or_prtry_node.append(cd_node)
