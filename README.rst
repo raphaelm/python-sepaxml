@@ -23,8 +23,8 @@ Supported standards:
 Usage
 -----
 
-Direct debit
-""""""""""""
+SEPA Direct Debit
+"""""""""""""""""
 
 Example:
 
@@ -90,8 +90,8 @@ Example:
     print(sepa.export(validate=True))
 
 
-Credit transfer
-"""""""""""""""
+SEPA Transfer
+"""""""""""""
 
 Example:
 
@@ -156,29 +156,24 @@ Example:
 Payment reference
 """""""""""""""""
 
-The library supports two types of payment references:
+The library supports two types of payment references: unstructured and structured. You must use either one or the other, not both simultaneously. If neither is provided, an exception will be raised.
 
-* **Unstructured references** - Use the ``description`` field for free text descriptions (up to 140 characters)
-* **Structured references** - Use the ``structured_reference`` field for standardized creditor references (like ISO 11649)
-
-You must use either unstructured OR structured reference, not both simultaneously. If neither is provided, an exception will be raised.
-
-Example with structured reference:
-
-.. code:: python
-
-    payment = {
-        # ... other required fields ...
-        "structured_reference": "RF18539007547034",  # ISO 11649 reference
-    }
-
-Example with unstructured reference:
+**Unstructured references** - Use the ``description`` field for free text descriptions (up to 140 characters) Find an example hereunder:
 
 .. code:: python
 
     payment = {
         # ... other required fields ...
         "description": "Invoice 12345",  # Free text description
+    }
+
+**Structured references** - Use the ``structured_reference`` field for standardized creditor references (like ISO 11649). Find an example hereunder:
+
+.. code:: python
+
+    payment = {
+        # ... other required fields ...
+        "structured_reference": "RF18539007547034",  # ISO 11649 reference
     }
 
 
