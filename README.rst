@@ -153,10 +153,10 @@ Example:
     print(sepa.export(validate=True))
 
 
-Remittance Information
-"""""""""""""""""""""
+Payment reference
+"""""""""""""""""
 
-The library supports two types of remittance information:
+The library supports two types of payment references:
 
 * **Unstructured references** - Use the ``description`` field for free text descriptions (up to 140 characters)
 * **Structured references** - Use the ``structured_reference`` field for standardized creditor references (like ISO 11649)
