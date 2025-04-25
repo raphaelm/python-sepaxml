@@ -3,20 +3,22 @@ import datetime
 import pytest
 
 from sepaxml import SepaDD
-from sepaxml.validation import ValidationError
 from tests.utils import clean_ids, validate_xml
 
 
 @pytest.fixture
 def sdd():
-    return SepaDD({
-        "name": "TestCreditor",
-        "IBAN": "NL50BANK1234567890",
-        "BIC": "BANKNL2A",
-        "batch": True,
-        "creditor_id": "DE26ZZZ00000000000",
-        "currency": "EUR"
-    }, schema="pain.008.001.02")
+    return SepaDD(
+        {
+            "name": "TestCreditor",
+            "IBAN": "NL50BANK1234567890",
+            "BIC": "BANKNL2A",
+            "batch": True,
+            "creditor_id": "DE26ZZZ00000000000",
+            "currency": "EUR",
+        },
+        schema="pain.008.001.02",
+    )
 
 
 SAMPLE_RESULT = b"""
@@ -195,7 +197,7 @@ def test_two_debits(sdd):
         "collection_date": datetime.date.today(),
         "mandate_id": "1234",
         "mandate_date": datetime.date.today(),
-        "description": "Test transaction1"
+        "description": "Test transaction1",
     }
     payment2 = {
         "name": "Test du Test",
@@ -206,7 +208,7 @@ def test_two_debits(sdd):
         "collection_date": datetime.date.today(),
         "mandate_id": "1234",
         "mandate_date": datetime.date.today(),
-        "description": "Test transaction2"
+        "description": "Test transaction2",
     }
 
     sdd.add_payment(payment1)
