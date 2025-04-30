@@ -66,6 +66,16 @@ class SepaDD(SepaPaymentInitn):
         encountered.
         """
         validation = ""
+        
+        # Don't allow both types of references
+        if 'description' in payment and 'structured_reference' in payment:
+            validation += "CANNOT_HAVE_BOTH_DESCRIPTION_AND_STRUCTURED_REFERENCE "
+        
+        # For backward compatibility: if structured_reference is not provided, description is required
+        # If structured_reference is provided, description becomes optional
+        if 'structured_reference' not in payment:
+            if 'description' not in payment:
+                validation += "DESCRIPTION_MISSING "
 
         if not isinstance(payment['amount'], int):
             validation += "AMOUNT_NOT_INTEGER "
@@ -93,7 +103,8 @@ class SepaDD(SepaPaymentInitn):
             from text_unidecode import unidecode
 
             payment['name'] = unidecode(payment['name'])[:70]
-            payment['description'] = unidecode(payment['description'])[:140]
+            if 'description' in payment:
+                payment['description'] = unidecode(payment['description'])[:140]
 
         # Validate the payment
         self.check_payment(payment)
@@ -153,7 +164,34 @@ class SepaDD(SepaPaymentInitn):
                 TX_nodes['PstlAdr_Dbtr_Node'].append(n)
 
         TX_nodes['IBAN_DbtrAcct_Node'].text = payment['IBAN']
-        TX_nodes['UstrdNode'].text = payment['description']
+        
+        # Handle either structured or unstructured reference
+        if 'description' in payment:
+            # Use unstructured reference
+            ustrd_node = ET.Element('Ustrd')
+            ustrd_node.text = payment['description']
+            TX_nodes['RmtInfNode'].append(ustrd_node)
+        elif 'structured_reference' in payment:
+            # Use structured reference
+            strd_node = ET.Element('Strd')
+            cdtr_ref_inf_node = ET.Element('CdtrRefInf')
+            tp_node = ET.Element('Tp')
+            cd_or_prtry_node = ET.Element('CdOrPrtry')
+            cd_node = ET.Element('Cd')
+            cd_node.text = 'SCOR'
+            issr_node = ET.Element('Issr')
+            issr_node.text = 'BBA'
+            ref_node = ET.Element('Ref')
+            ref_node.text = payment['structured_reference']
+            
+            cd_or_prtry_node.append(cd_node)
+            tp_node.append(cd_or_prtry_node)
+            tp_node.append(issr_node)
+            cdtr_ref_inf_node.append(tp_node)
+            cdtr_ref_inf_node.append(ref_node)
+            strd_node.append(cdtr_ref_inf_node)
+            TX_nodes['RmtInfNode'].append(strd_node)
+            
         if not payment.get('endtoend_id', ''):
             payment['endtoend_id'] = make_id(self._config['name'])
         TX_nodes['EndToEndIdNode'].text = payment['endtoend_id']
@@ -274,7 +312,8 @@ class SepaDD(SepaPaymentInitn):
         ED['Id_DbtrAcct_Node'] = ET.Element("Id")
         ED['IBAN_DbtrAcct_Node'] = ET.Element("IBAN")
         ED['RmtInfNode'] = ET.Element("RmtInf")
-        ED['UstrdNode'] = ET.Element("Ustrd")
+        # We'll create UstrdNode or StrdNode elements on demand in add_payment
+        # instead of creating them here
         return ED
 
     def _add_non_batch(self, TX_nodes, PmtInf_nodes):
@@ -359,7 +398,6 @@ class SepaDD(SepaPaymentInitn):
         TX_nodes['DbtrAcctNode'].append(TX_nodes['Id_DbtrAcct_Node'])
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['DbtrAcctNode'])
 
-        TX_nodes['RmtInfNode'].append(TX_nodes['UstrdNode'])
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['RmtInfNode'])
         PmtInf_nodes['PmtInfNode'].append(TX_nodes['DrctDbtTxInfNode'])
         CstmrDrctDbtInitn_node = self._xml.find('CstmrDrctDbtInitn')
@@ -400,7 +438,6 @@ class SepaDD(SepaPaymentInitn):
         TX_nodes['DbtrAcctNode'].append(TX_nodes['Id_DbtrAcct_Node'])
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['DbtrAcctNode'])
 
-        TX_nodes['RmtInfNode'].append(TX_nodes['UstrdNode'])
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['RmtInfNode'])
         self._add_to_batch_list(TX_nodes, payment)
 
