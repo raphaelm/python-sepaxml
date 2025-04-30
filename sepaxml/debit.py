@@ -179,11 +179,14 @@ class SepaDD(SepaPaymentInitn):
             cd_or_prtry_node = ET.Element('CdOrPrtry')
             cd_node = ET.Element('Cd')
             cd_node.text = 'SCOR'
+            issr_node = ET.Element('Issr')
+            issr_node.text = 'BBA'
             ref_node = ET.Element('Ref')
             ref_node.text = payment['structured_reference']
             
             cd_or_prtry_node.append(cd_node)
             tp_node.append(cd_or_prtry_node)
+            tp_node.append(issr_node)
             cdtr_ref_inf_node.append(tp_node)
             cdtr_ref_inf_node.append(ref_node)
             strd_node.append(cdtr_ref_inf_node)
