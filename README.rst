@@ -164,7 +164,7 @@ To automatically sort your Imports as required by CI::
 Security
 --------
 
-If you discover a security issue, please contact us at security@pretix.eu and see our [Responsible Disclosure Policy](https://docs.pretix.eu/trust/security/disclosure/) further information.
+If you discover a security issue, please contact us at security@pretix.eu and see our `Responsible Disclosure Policy`_ further information.
 
 Credits and License
 -------------------
@@ -183,3 +183,4 @@ freely.
 
 .. _PySepaDD: https://github.com/congressus/PySepaDD
 .. _allowed to be reproduced: https://www.iso20022.org/terms-use
+.. _Responsible Disclosure Policy: https://docs.pretix.eu/trust/security/disclosure/
