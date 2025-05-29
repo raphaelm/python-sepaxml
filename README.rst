@@ -161,6 +161,11 @@ To automatically sort your Imports as required by CI::
     isort -rc .
 
 
+Security
+--------
+
+If you discover a security issue, please contact us at security@pretix.eu and see our [Responsible Disclosure Policy](https://docs.pretix.eu/trust/security/disclosure/) further information.
+
 Credits and License
 -------------------
 
