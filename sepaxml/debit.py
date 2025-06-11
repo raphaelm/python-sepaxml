@@ -130,7 +130,7 @@ class SepaDD(SepaPaymentInitn):
             bic = False
 
         TX_nodes = self._create_TX_node(bic)
-        TX_nodes['InstdAmtNode'].set("Ccy", self._config['currency'])
+        TX_nodes['InstdAmtNode'].set("Ccy", payment.get('currency', self._config['currency']))
         TX_nodes['InstdAmtNode'].text = int_to_decimal_str(payment['amount'])
 
         TX_nodes['MndtIdNode'].text = payment['mandate_id']
