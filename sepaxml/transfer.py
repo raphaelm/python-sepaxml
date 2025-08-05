@@ -296,7 +296,7 @@ class SepaTransfer(SepaPaymentInitn):
             TX_nodes['CdtTrfTxInfNode'].append(TX_nodes['CdtrAgtNode'])
 
         TX_nodes['CdtrNode'].append(TX_nodes['Nm_Cdtr_Node'])
-        if TX_nodes['PstlAdr_Cdtr_Node']:
+        if len(TX_nodes['PstlAdr_Cdtr_Node']) > 0:
             TX_nodes['CdtrNode'].append(TX_nodes['PstlAdr_Cdtr_Node'])
 
         TX_nodes['CdtTrfTxInfNode'].append(TX_nodes['CdtrNode'])
@@ -329,7 +329,7 @@ class SepaTransfer(SepaPaymentInitn):
             TX_nodes['CdtTrfTxInfNode'].append(TX_nodes['CdtrAgtNode'])
 
         TX_nodes['CdtrNode'].append(TX_nodes['Nm_Cdtr_Node'])
-        if TX_nodes['PstlAdr_Cdtr_Node']:
+        if len(TX_nodes['PstlAdr_Cdtr_Node']) > 0:
             TX_nodes['CdtrNode'].append(TX_nodes['PstlAdr_Cdtr_Node'])
         TX_nodes['CdtTrfTxInfNode'].append(TX_nodes['CdtrNode'])
 
@@ -415,7 +415,7 @@ class SepaTransfer(SepaPaymentInitn):
                 PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ReqdExctnDtNode'])
 
             PmtInf_nodes['DbtrNode'].append(PmtInf_nodes['Nm_Dbtr_Node'])
-            if PmtInf_nodes['PstlAdr_Dbtr_Node']:
+            if len(PmtInf_nodes['PstlAdr_Dbtr_Node']) > 0:
                 PmtInf_nodes['DbtrNode'].append(PmtInf_nodes['PstlAdr_Dbtr_Node'])
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['DbtrNode'])
 
