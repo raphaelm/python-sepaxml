@@ -40,6 +40,7 @@ Example:
     import datetime, uuid
 
     config = {
+        # "msg_id": "", # If your bank require a specific format for MsgId, you can optionnaly set it up here. Default will be randomly generated with timestamp followed by a random value.
         "name": "Test von Testenstein",
         "IBAN": "NL50BANK1234567890",
         "BIC": "BANKNL2A",
@@ -59,6 +60,15 @@ Example:
             "country": "DE",
             "country_subdivision": None,
             "lines": ["Line 1", "Line 2"],
+        },
+        # "initiating_party": "John Doe", # optional name of the initiator of the payment, required by some banks. default to ''name'
+        # "initiating_party_id": "DE26ZZZ00000000002", # optional, supplied by your bank or financial authority. default to 'creditor_id'
+        "ultimate_creditor": {
+            # The ultimate_creditor and all of its fields are optional but in some financial institution they are required
+            "name": "Real Creditor",
+            "BIC_or_BEI": "REALNL2A",
+            "id": "12345678900001", # can be a local official id or the creditor_id
+            "id_scheme_name": "SIRET", # proprietary scheme of the id provided (i.e. SEPA, SIRET...)
         },
     }
     sepa = SepaDD(config, schema="pain.008.001.02", clean=True)
@@ -87,6 +97,8 @@ Example:
             "country_subdivision": None,
             "lines": ["Line 1", "Line 2"],
         },
+        # "initiating_party": "John Doe", # optional name of the initiator of the payment, required by some banks. default to ''name'
+        # "initiating_party_id": "DE26ZZZ00000000002", # optional, supplied by your bank or financial authority. default to 'creditor_id'
     }
     sepa.add_payment(payment)
 
@@ -104,6 +116,7 @@ Example:
     import datetime, uuid
 
     config = {
+        # "msg_id": "", # If your bank require a specific message_id format, you can set it up here. Default will be randomly generated with timestamp followed by a random value.
         "name": "Test von Testenstein",
         "IBAN": "NL50BANK1234567890",
         "BIC": "BANKNL2A",
