@@ -18,17 +18,20 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
+
 import datetime
+import re
 import xml.etree.ElementTree as ET
 
 from .shared import SepaPaymentInitn
-from .utils import ADDRESS_MAPPING, int_to_decimal_str, make_id
+from .utils import ADDRESS_MAPPING, int_to_decimal_str, make_id, validate_structured_description
 
 
 class SepaTransfer(SepaPaymentInitn):
     """
     This class creates a Sepa transfer XML File.
     """
+
     root_el = "CstmrCdtTrfInitn"
 
     def __init__(self, config, schema="pain.001.001.03", clean=True):
@@ -63,33 +66,40 @@ class SepaTransfer(SepaPaymentInitn):
         validation = ""
         # Maintain original required fields for backward compatibility
         required = ["name", "IBAN", "amount", "execution_date"]
-        
-        # Don't allow both types of references
-        if 'description' in payment and 'structured_reference' in payment:
-            validation += "CANNOT_HAVE_BOTH_DESCRIPTION_AND_STRUCTURED_REFERENCE "
-        
-        # For backward compatibility: if structured_reference is not provided, description is required
-        # If structured_reference is provided, description becomes optional
-        if 'structured_reference' not in payment:
-            if 'description' not in payment:
+
+        # Don't allow both types of descriptions
+        if "description" in payment and "structured_description" in payment:
+            validation += "CANNOT_HAVE_BOTH_DESCRIPTION_AND_STRUCTURED_DESCRIPTION "
+
+        # For backward compatibility: if structured_description is not provided, description is required
+        # If structured_description is provided, description becomes optional
+        if "structured_description" not in payment:
+            if "description" not in payment:
                 validation += "DESCRIPTION_MISSING "
+        else:
+            # Validate structured description format if provided
+            ref_format = payment.get('structured_description_type', 'ISO')
+            try:
+                validate_structured_description(payment['structured_description'], ref_format)
+            except ValueError as e:
+                validation += str(e) + " "
 
         for config_item in required:
             if config_item not in payment:
                 validation += config_item.upper() + "_MISSING "
 
-        if not isinstance(payment['amount'], int):
+        if not isinstance(payment["amount"], int):
             validation += "AMOUNT_NOT_INTEGER "
 
-        if 'execution_date' in payment:
-            if not isinstance(payment['execution_date'], datetime.date):
+        if "execution_date" in payment:
+            if not isinstance(payment["execution_date"], datetime.date):
                 validation += "EXECUTION_DATE_INVALID_OR_NOT_DATETIME_INSTANCE"
-            payment['execution_date'] = payment['execution_date'].isoformat()
+            payment["execution_date"] = payment["execution_date"].isoformat()
 
         if validation == "":
             return True
         else:
-            raise Exception('Payment did not validate: ' + validation)
+            raise Exception("Payment did not validate: " + validation)
 
     def add_payment(self, payment):
         """
@@ -103,12 +113,12 @@ class SepaTransfer(SepaPaymentInitn):
         if self.clean:
             from text_unidecode import unidecode
 
-            payment['name'] = unidecode(payment['name'])[:70]
-            if 'description' in payment:
-                payment['description'] = unidecode(payment['description'])[:140]
+            payment["name"] = unidecode(payment["name"])[:70]
+            if "description" in payment:
+                payment["description"] = unidecode(payment["description"])[:140]
 
         # Get the CstmrDrctDbtInitnNode
-        if not self._config['batch']:
+        if not self._config["batch"]:
             # Start building the non batch payment
             PmtInf_nodes = self._create_PmtInf_node()
             PmtInf_nodes['PmtInfIdNode'].text = make_id(self._config['name'])
@@ -120,71 +130,97 @@ class SepaTransfer(SepaPaymentInitn):
             )
             if not self._config.get('domestic', False):
                 PmtInf_nodes['Cd_SvcLvl_Node'].text = "SEPA"
+            if payment.get('instant', False):
+                PmtInf_nodes['Cd_LclInstrm_Node'].text = "INST"
             if 'execution_date' in payment:
-                PmtInf_nodes['ReqdExctnDtNode'].text = payment['execution_date']
+                if self.schema == "pain.001.001.03":
+                    PmtInf_nodes['ReqdExctnDtNode'].text = payment['execution_date']
+                else:
+                    PmtInf_nodes['ReqdExctnDt_Dt_Node'].text = payment['execution_date']
             else:
-                del PmtInf_nodes['ReqdExctnDtNode']
+                del PmtInf_nodes["ReqdExctnDtNode"]
 
-            PmtInf_nodes['Nm_Dbtr_Node'].text = self._config['name']
-            if payment.get('address', {}):
+            PmtInf_nodes["Nm_Dbtr_Node"].text = self._config["name"]
+            if payment.get("address", {}):
                 for d, n in ADDRESS_MAPPING:
-                    if self._config['address'].get(d):
+                    if self._config["address"].get(d):
                         n = ET.Element(n)
-                        n.text = self._config['address'][d]
-                        PmtInf_nodes['PstlAdr_Dbtr_Node'].append(n)
-                for line in self._config.get('lines', []):
-                    n = ET.Element('AdrLine')
+                        n.text = self._config["address"][d]
+                        PmtInf_nodes["PstlAdr_Dbtr_Node"].append(n)
+                for line in self._config.get("lines", []):
+                    n = ET.Element("AdrLine")
                     n.text = line
-                    PmtInf_nodes['PstlAdr_Dbtr_Node'].append(n)
+                    PmtInf_nodes["PstlAdr_Dbtr_Node"].append(n)
 
-            PmtInf_nodes['IBAN_DbtrAcct_Node'].text = self._config['IBAN']
-            if 'BIC' in self._config:
-                PmtInf_nodes['BIC_DbtrAgt_Node'].text = self._config['BIC']
+            PmtInf_nodes["IBAN_DbtrAcct_Node"].text = self._config["IBAN"]
+            if "BIC" in self._config:
+                PmtInf_nodes["BIC_DbtrAgt_Node"].text = self._config["BIC"]
 
-            PmtInf_nodes['ChrgBrNode'].text = "SLEV"
+            PmtInf_nodes["ChrgBrNode"].text = "SLEV"
 
-        if 'BIC' in payment:
+        if "BIC" in payment:
             bic = True
         else:
             bic = False
 
         TX_nodes = self._create_TX_node(bic)
-        TX_nodes['InstdAmtNode'].set("Ccy", self._config['currency'])
+        TX_nodes['InstdAmtNode'].set("Ccy", payment.get('currency', self._config['currency']))
         TX_nodes['InstdAmtNode'].text = int_to_decimal_str(payment['amount'])
         TX_nodes['EndToEnd_PmtId_Node'].text = payment.get('endtoend_id', 'NOTPROVIDED')
+
         if bic:
-            TX_nodes['BIC_CdtrAgt_Node'].text = payment['BIC']
-        TX_nodes['Nm_Cdtr_Node'].text = payment['name']
-        if payment.get('address', {}):
+            TX_nodes["BIC_CdtrAgt_Node"].text = payment["BIC"]
+        TX_nodes["Nm_Cdtr_Node"].text = payment["name"]
+        if payment.get("address", {}):
             for d, n in ADDRESS_MAPPING:
-                if payment['address'].get(d):
+                if payment["address"].get(d):
                     n = ET.Element(n)
-                    n.text = payment['address'][d]
-                    TX_nodes['PstlAdr_Cdtr_Node'].append(n)
-            for line in payment['address'].get('lines', []):
-                n = ET.Element('AdrLine')
+                    n.text = payment["address"][d]
+                    TX_nodes["PstlAdr_Cdtr_Node"].append(n)
+            for line in payment["address"].get("lines", []):
+                n = ET.Element("AdrLine")
                 n.text = line
-                TX_nodes['PstlAdr_Cdtr_Node'].append(n)
+                TX_nodes["PstlAdr_Cdtr_Node"].append(n)
 
-        TX_nodes['IBAN_CdtrAcct_Node'].text = payment['IBAN']
-        
-        # Handle either structured or unstructured reference
-        if 'description' in payment:
-            TX_nodes['UstrdNode'].text = payment['description']
-        elif 'structured_reference' in payment:
-            # Remove the UstrdNode
-            TX_nodes['RmtInfNode'].remove(TX_nodes['UstrdNode'])
-            
-            # Setup the structured reference elements
-            TX_nodes['RefNode'].text = payment['structured_reference']
-            TX_nodes['CdOrPrtryNode'].append(TX_nodes['CdNode'])
-            TX_nodes['TpNode'].append(TX_nodes['CdOrPrtryNode'])
-            TX_nodes['CdtrRefInfNode'].append(TX_nodes['TpNode'])
-            TX_nodes['CdtrRefInfNode'].append(TX_nodes['RefNode'])
-            TX_nodes['StrdNode'].append(TX_nodes['CdtrRefInfNode'])
-            TX_nodes['RmtInfNode'].append(TX_nodes['StrdNode'])
+        TX_nodes["IBAN_CdtrAcct_Node"].text = payment["IBAN"]
 
-        if self._config['batch']:
+        # Handle either structured or unstructured description
+        if "description" in payment:
+            # Use unstructured description
+            ustrd_node = ET.Element('Ustrd')
+            ustrd_node.text = payment["description"]
+            TX_nodes["RmtInfNode"].append(ustrd_node)
+        elif "structured_description" in payment:
+            # Use structured description
+            strd_node = ET.Element('Strd')
+            cdtr_ref_inf_node = ET.Element('CdtrRefInf')
+            tp_node = ET.Element('Tp')
+            cd_or_prtry_node = ET.Element('CdOrPrtry')
+            cd_node = ET.Element('Cd')
+            cd_node.text = 'SCOR'
+
+            # Get the issuer from payment or default to 'BBA' for Belgian banks
+            issuer = payment.get('structured_description_issuer', 'BBA')
+            if issuer:  # Only add Issr node if issuer is specified
+                issr_node = ET.Element('Issr')
+                issr_node.text = issuer
+                tp_node.append(cd_or_prtry_node)
+                tp_node.append(issr_node)
+            else:
+                tp_node.append(cd_or_prtry_node)
+
+            # Clean structured description (remove formatting characters)
+            clean_ref = re.sub(r'[/+\s]', '', payment['structured_description'])
+            ref_node = ET.Element('Ref')
+            ref_node.text = clean_ref
+
+            cd_or_prtry_node.append(cd_node)
+            cdtr_ref_inf_node.append(tp_node)
+            cdtr_ref_inf_node.append(ref_node)
+            strd_node.append(cdtr_ref_inf_node)
+            TX_nodes["RmtInfNode"].append(strd_node)
+
+        if self._config["batch"]:
             self._add_batch(TX_nodes, payment)
         else:
             self._add_non_batch(TX_nodes, PmtInf_nodes)
@@ -195,7 +231,7 @@ class SepaTransfer(SepaPaymentInitn):
         CstmrCdtTrfInitn Node
         """
         # Retrieve the node to which we will append the group header.
-        CstmrCdtTrfInitn_node = self._xml.find('CstmrCdtTrfInitn')
+        CstmrCdtTrfInitn_node = self._xml.find("CstmrCdtTrfInitn")
 
         # Create the header nodes.
         GrpHdr_node = ET.Element("GrpHdr")
@@ -208,8 +244,8 @@ class SepaTransfer(SepaPaymentInitn):
 
         # Add data to some header nodes.
         MsgId_node.text = self.msg_id
-        CreDtTm_node.text = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-        Nm_node.text = self._config['name']
+        CreDtTm_node.text = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        Nm_node.text = self._config["name"]
 
         # Append the nodes
         InitgPty_node.append(Nm_node)
@@ -237,7 +273,10 @@ class SepaTransfer(SepaPaymentInitn):
         if not self._config.get('domestic', False):
             ED['SvcLvlNode'] = ET.Element("SvcLvl")
             ED['Cd_SvcLvl_Node'] = ET.Element("Cd")
+        ED['LclInstrmNode'] = ET.Element("LclInstrm")
+        ED['Cd_LclInstrm_Node'] = ET.Element("Cd")
         ED['ReqdExctnDtNode'] = ET.Element("ReqdExctnDt")
+        ED['ReqdExctnDt_Dt_Node'] = ET.Element("Dt")
 
         ED['DbtrNode'] = ET.Element("Dbtr")
         ED['Nm_Dbtr_Node'] = ET.Element("Nm")
@@ -248,7 +287,10 @@ class SepaTransfer(SepaPaymentInitn):
         ED['DbtrAgtNode'] = ET.Element("DbtrAgt")
         ED['FinInstnId_DbtrAgt_Node'] = ET.Element("FinInstnId")
         if 'BIC' in self._config:
-            ED['BIC_DbtrAgt_Node'] = ET.Element("BIC")
+            if self.schema != 'pain.001.001.03':
+                ED['BIC_DbtrAgt_Node'] = ET.Element("BICFI")
+            else:
+                ED['BIC_DbtrAgt_Node'] = ET.Element("BIC")
         ED['ChrgBrNode'] = ET.Element("ChrgBr")
         return ED
 
@@ -258,32 +300,27 @@ class SepaTransfer(SepaPaymentInitn):
         the BIC node will also be created.
         """
         ED = dict()
-        ED['CdtTrfTxInfNode'] = ET.Element("CdtTrfTxInf")
-        ED['PmtIdNode'] = ET.Element("PmtId")
-        ED['EndToEnd_PmtId_Node'] = ET.Element("EndToEndId")
-        ED['AmtNode'] = ET.Element("Amt")
-        ED['InstdAmtNode'] = ET.Element("InstdAmt")
-        ED['CdtrNode'] = ET.Element("Cdtr")
-        ED['Nm_Cdtr_Node'] = ET.Element("Nm")
-        ED['PstlAdr_Cdtr_Node'] = ET.Element("PstlAdr")
-        ED['CdtrAgtNode'] = ET.Element("CdtrAgt")
-        ED['FinInstnId_CdtrAgt_Node'] = ET.Element("FinInstnId")
+        ED["CdtTrfTxInfNode"] = ET.Element("CdtTrfTxInf")
+        ED["PmtIdNode"] = ET.Element("PmtId")
+        ED["EndToEnd_PmtId_Node"] = ET.Element("EndToEndId")
+        ED["AmtNode"] = ET.Element("Amt")
+        ED["InstdAmtNode"] = ET.Element("InstdAmt")
+        ED["CdtrNode"] = ET.Element("Cdtr")
+        ED["Nm_Cdtr_Node"] = ET.Element("Nm")
+        ED["PstlAdr_Cdtr_Node"] = ET.Element("PstlAdr")
+        ED["CdtrAgtNode"] = ET.Element("CdtrAgt")
+        ED["FinInstnId_CdtrAgt_Node"] = ET.Element("FinInstnId")
         if bic:
-            ED['BIC_CdtrAgt_Node'] = ET.Element("BIC")
+            if self.schema != 'pain.001.001.03':
+                ED['BIC_CdtrAgt_Node'] = ET.Element("BICFI")
+            else:
+                ED['BIC_CdtrAgt_Node'] = ET.Element("BIC")
         ED['CdtrAcctNode'] = ET.Element("CdtrAcct")
         ED['Id_CdtrAcct_Node'] = ET.Element("Id")
         ED['IBAN_CdtrAcct_Node'] = ET.Element("IBAN")
         ED['RmtInfNode'] = ET.Element("RmtInf")
-        ED['UstrdNode'] = ET.Element("Ustrd")
-        # Create nodes for structured reference
-        ED['StrdNode'] = ET.Element("Strd")
-        ED['CdtrRefInfNode'] = ET.Element("CdtrRefInf")
-        ED['TpNode'] = ET.Element("Tp")
-        ED['CdOrPrtryNode'] = ET.Element("CdOrPrtry")
-        ED['CdNode'] = ET.Element("Cd")
-        ED['RefNode'] = ET.Element("Ref")
-        # Set the default code
-        ED['CdNode'].text = "SCOR"
+        # We'll create UstrdNode or StrdNode elements on demand in add_payment
+        # instead of creating them here
         return ED
 
     def _add_non_batch(self, TX_nodes, PmtInf_nodes):
@@ -297,55 +334,68 @@ class SepaTransfer(SepaPaymentInitn):
         PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['NbOfTxsNode'])
         PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['CtrlSumNode'])
 
+        pmttypinf_has_content = False
         if not self._config.get('domestic', False):
             PmtInf_nodes['SvcLvlNode'].append(PmtInf_nodes['Cd_SvcLvl_Node'])
             PmtInf_nodes['PmtTpInfNode'].append(PmtInf_nodes['SvcLvlNode'])
+            pmttypinf_has_content = True
+        if PmtInf_nodes['Cd_LclInstrm_Node'].text == "INST":
+            PmtInf_nodes['LclInstrmNode'].append(PmtInf_nodes['Cd_LclInstrm_Node'])
+            PmtInf_nodes['PmtTpInfNode'].append(PmtInf_nodes['LclInstrmNode'])
+            pmttypinf_has_content = True
+        if pmttypinf_has_content:
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['PmtTpInfNode'])
         if 'ReqdExctnDtNode' in PmtInf_nodes:
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ReqdExctnDtNode'])
+            if self.schema != "pain.001.001.03":
+                PmtInf_nodes['ReqdExctnDtNode'].append(PmtInf_nodes['ReqdExctnDt_Dt_Node'])
 
         PmtInf_nodes['DbtrNode'].append(PmtInf_nodes['Nm_Dbtr_Node'])
+
         if "PstlAdr_Dbtr_Node" in TX_nodes:
-            PmtInf_nodes['DbtrNode'].append(TX_nodes['PstlAdr_Dbtr_Node'])
-        PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['DbtrNode'])
+            PmtInf_nodes["DbtrNode"].append(TX_nodes["PstlAdr_Dbtr_Node"])
+        PmtInf_nodes["PmtInfNode"].append(PmtInf_nodes["DbtrNode"])
 
-        PmtInf_nodes['Id_DbtrAcct_Node'].append(PmtInf_nodes['IBAN_DbtrAcct_Node'])
-        PmtInf_nodes['DbtrAcctNode'].append(PmtInf_nodes['Id_DbtrAcct_Node'])
-        PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['DbtrAcctNode'])
+        PmtInf_nodes["Id_DbtrAcct_Node"].append(PmtInf_nodes["IBAN_DbtrAcct_Node"])
+        PmtInf_nodes["DbtrAcctNode"].append(PmtInf_nodes["Id_DbtrAcct_Node"])
+        PmtInf_nodes["PmtInfNode"].append(PmtInf_nodes["DbtrAcctNode"])
 
-        if 'BIC' in self._config:
-            PmtInf_nodes['FinInstnId_DbtrAgt_Node'].append(PmtInf_nodes['BIC_DbtrAgt_Node'])
-        PmtInf_nodes['DbtrAgtNode'].append(PmtInf_nodes['FinInstnId_DbtrAgt_Node'])
-        PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['DbtrAgtNode'])
+        if "BIC" in self._config:
+            PmtInf_nodes["FinInstnId_DbtrAgt_Node"].append(
+                PmtInf_nodes["BIC_DbtrAgt_Node"]
+            )
+        PmtInf_nodes["DbtrAgtNode"].append(PmtInf_nodes["FinInstnId_DbtrAgt_Node"])
+        PmtInf_nodes["PmtInfNode"].append(PmtInf_nodes["DbtrAgtNode"])
 
-        PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ChrgBrNode'])
+        PmtInf_nodes["PmtInfNode"].append(PmtInf_nodes["ChrgBrNode"])
 
-        TX_nodes['PmtIdNode'].append(TX_nodes['EndToEnd_PmtId_Node'])
-        TX_nodes['AmtNode'].append(TX_nodes['InstdAmtNode'])
-        TX_nodes['CdtTrfTxInfNode'].append(TX_nodes['PmtIdNode'])
-        TX_nodes['CdtTrfTxInfNode'].append(TX_nodes['AmtNode'])
+        TX_nodes["PmtIdNode"].append(TX_nodes["EndToEnd_PmtId_Node"])
+        TX_nodes["AmtNode"].append(TX_nodes["InstdAmtNode"])
+        TX_nodes["CdtTrfTxInfNode"].append(TX_nodes["PmtIdNode"])
+        TX_nodes["CdtTrfTxInfNode"].append(TX_nodes["AmtNode"])
 
-        if 'BIC_CdtrAgt_Node' in TX_nodes and TX_nodes['BIC_CdtrAgt_Node'].text is not None:
-            TX_nodes['FinInstnId_CdtrAgt_Node'].append(
-                TX_nodes['BIC_CdtrAgt_Node'])
-            TX_nodes['CdtrAgtNode'].append(TX_nodes['FinInstnId_CdtrAgt_Node'])
-            TX_nodes['CdtTrfTxInfNode'].append(TX_nodes['CdtrAgtNode'])
+        if (
+            "BIC_CdtrAgt_Node" in TX_nodes
+            and TX_nodes["BIC_CdtrAgt_Node"].text is not None
+        ):
+            TX_nodes["FinInstnId_CdtrAgt_Node"].append(TX_nodes["BIC_CdtrAgt_Node"])
+            TX_nodes["CdtrAgtNode"].append(TX_nodes["FinInstnId_CdtrAgt_Node"])
+            TX_nodes["CdtTrfTxInfNode"].append(TX_nodes["CdtrAgtNode"])
 
         TX_nodes['CdtrNode'].append(TX_nodes['Nm_Cdtr_Node'])
-        if TX_nodes['PstlAdr_Cdtr_Node']:
+        if len(TX_nodes['PstlAdr_Cdtr_Node']) > 0:
             TX_nodes['CdtrNode'].append(TX_nodes['PstlAdr_Cdtr_Node'])
 
-        TX_nodes['CdtTrfTxInfNode'].append(TX_nodes['CdtrNode'])
+        TX_nodes["CdtTrfTxInfNode"].append(TX_nodes["CdtrNode"])
 
-        TX_nodes['Id_CdtrAcct_Node'].append(TX_nodes['IBAN_CdtrAcct_Node'])
-        TX_nodes['CdtrAcctNode'].append(TX_nodes['Id_CdtrAcct_Node'])
-        TX_nodes['CdtTrfTxInfNode'].append(TX_nodes['CdtrAcctNode'])
+        TX_nodes["Id_CdtrAcct_Node"].append(TX_nodes["IBAN_CdtrAcct_Node"])
+        TX_nodes["CdtrAcctNode"].append(TX_nodes["Id_CdtrAcct_Node"])
+        TX_nodes["CdtTrfTxInfNode"].append(TX_nodes["CdtrAcctNode"])
 
-        TX_nodes['RmtInfNode'].append(TX_nodes['UstrdNode'])
-        TX_nodes['CdtTrfTxInfNode'].append(TX_nodes['RmtInfNode'])
-        PmtInf_nodes['PmtInfNode'].append(TX_nodes['CdtTrfTxInfNode'])
-        CstmrCdtTrfInitn_node = self._xml.find('CstmrCdtTrfInitn')
-        CstmrCdtTrfInitn_node.append(PmtInf_nodes['PmtInfNode'])
+        TX_nodes["CdtTrfTxInfNode"].append(TX_nodes["RmtInfNode"])
+        PmtInf_nodes["PmtInfNode"].append(TX_nodes["CdtTrfTxInfNode"])
+        CstmrCdtTrfInitn_node = self._xml.find("CstmrCdtTrfInitn")
+        CstmrCdtTrfInitn_node.append(PmtInf_nodes["PmtInfNode"])
 
     def _add_batch(self, TX_nodes, payment):
         """
@@ -365,7 +415,7 @@ class SepaTransfer(SepaPaymentInitn):
             TX_nodes['CdtTrfTxInfNode'].append(TX_nodes['CdtrAgtNode'])
 
         TX_nodes['CdtrNode'].append(TX_nodes['Nm_Cdtr_Node'])
-        if TX_nodes['PstlAdr_Cdtr_Node']:
+        if len(TX_nodes['PstlAdr_Cdtr_Node']) > 0:
             TX_nodes['CdtrNode'].append(TX_nodes['PstlAdr_Cdtr_Node'])
         TX_nodes['CdtTrfTxInfNode'].append(TX_nodes['CdtrNode'])
 
@@ -373,8 +423,8 @@ class SepaTransfer(SepaPaymentInitn):
         TX_nodes['CdtrAcctNode'].append(TX_nodes['Id_CdtrAcct_Node'])
         TX_nodes['CdtTrfTxInfNode'].append(TX_nodes['CdtrAcctNode'])
 
-        TX_nodes['RmtInfNode'].append(TX_nodes['UstrdNode'])
         TX_nodes['CdtTrfTxInfNode'].append(TX_nodes['RmtInfNode'])
+
         self._add_to_batch_list(TX_nodes, payment)
 
     def _add_to_batch_list(self, TX, payment):
@@ -384,17 +434,19 @@ class SepaTransfer(SepaPaymentInitn):
         not existant. This will also add the payment amount to the respective
         batch total.
         """
-        batch_key = payment.get('execution_date', None)
+
+        batch_key = (payment.get('execution_date', None), payment.get('instant', False))
+
         if batch_key in self._batches.keys():
-            self._batches[batch_key].append(TX['CdtTrfTxInfNode'])
+            self._batches[batch_key].append(TX["CdtTrfTxInfNode"])
         else:
             self._batches[batch_key] = []
-            self._batches[batch_key].append(TX['CdtTrfTxInfNode'])
+            self._batches[batch_key].append(TX["CdtTrfTxInfNode"])
 
         if batch_key in self._batch_totals:
-            self._batch_totals[batch_key] += payment['amount']
+            self._batch_totals[batch_key] += payment["amount"]
         else:
-            self._batch_totals[batch_key] = payment['amount']
+            self._batch_totals[batch_key] = payment["amount"]
 
     def _finalize_batch(self):
         """
@@ -405,69 +457,85 @@ class SepaTransfer(SepaPaymentInitn):
         the main XML.
         """
         for batch_meta, batch_nodes in self._batches.items():
+            execution_date, instant = batch_meta
             PmtInf_nodes = self._create_PmtInf_node()
             PmtInf_nodes['PmtInfIdNode'].text = make_id(self._config['name'])
             PmtInf_nodes['PmtMtdNode'].text = "TRF"
             PmtInf_nodes['BtchBookgNode'].text = "true"
             if not self._config.get('domestic', False):
                 PmtInf_nodes['Cd_SvcLvl_Node'].text = "SEPA"
+            if instant:
+                PmtInf_nodes['Cd_LclInstrm_Node'].text = "INST"
 
-            if batch_meta:
-                PmtInf_nodes['ReqdExctnDtNode'].text = batch_meta
+            if execution_date:
+                if self.schema == "pain.001.001.03":
+                    PmtInf_nodes['ReqdExctnDtNode'].text = execution_date
+                else:
+                    PmtInf_nodes['ReqdExctnDt_Dt_Node'].text = execution_date
             else:
-                del PmtInf_nodes['ReqdExctnDtNode']
-            PmtInf_nodes['Nm_Dbtr_Node'].text = self._config['name']
-            if self._config.get('address', {}):
+                del PmtInf_nodes["ReqdExctnDtNode"]
+            PmtInf_nodes["Nm_Dbtr_Node"].text = self._config["name"]
+            if self._config.get("address", {}):
                 for d, n in ADDRESS_MAPPING:
-                    if self._config['address'].get(d):
+                    if self._config["address"].get(d):
                         n = ET.Element(n)
-                        n.text = self._config['address'][d]
-                        PmtInf_nodes['PstlAdr_Dbtr_Node'].append(n)
-                for line in self._config['address'].get('lines', []):
-                    n = ET.Element('AdrLine')
+                        n.text = self._config["address"][d]
+                        PmtInf_nodes["PstlAdr_Dbtr_Node"].append(n)
+                for line in self._config["address"].get("lines", []):
+                    n = ET.Element("AdrLine")
                     n.text = line
-                    PmtInf_nodes['PstlAdr_Dbtr_Node'].append(n)
-            PmtInf_nodes['IBAN_DbtrAcct_Node'].text = self._config['IBAN']
+                    PmtInf_nodes["PstlAdr_Dbtr_Node"].append(n)
+            PmtInf_nodes["IBAN_DbtrAcct_Node"].text = self._config["IBAN"]
 
-            if 'BIC' in self._config:
-                PmtInf_nodes['BIC_DbtrAgt_Node'].text = self._config['BIC']
+            if "BIC" in self._config:
+                PmtInf_nodes["BIC_DbtrAgt_Node"].text = self._config["BIC"]
 
-            PmtInf_nodes['ChrgBrNode'].text = "SLEV"
+            PmtInf_nodes["ChrgBrNode"].text = "SLEV"
+            PmtInf_nodes["NbOfTxsNode"].text = str(len(batch_nodes))
+            PmtInf_nodes["CtrlSumNode"].text = int_to_decimal_str(self._batch_totals[batch_meta])
 
-            PmtInf_nodes['NbOfTxsNode'].text = str(len(batch_nodes))
-            PmtInf_nodes['CtrlSumNode'].text = int_to_decimal_str(self._batch_totals[batch_meta])
+            PmtInf_nodes["PmtInfNode"].append(PmtInf_nodes["PmtInfIdNode"])
+            PmtInf_nodes["PmtInfNode"].append(PmtInf_nodes["PmtMtdNode"])
+            PmtInf_nodes["PmtInfNode"].append(PmtInf_nodes["BtchBookgNode"])
+            PmtInf_nodes["PmtInfNode"].append(PmtInf_nodes["NbOfTxsNode"])
+            PmtInf_nodes["PmtInfNode"].append(PmtInf_nodes["CtrlSumNode"])
 
-            PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['PmtInfIdNode'])
-            PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['PmtMtdNode'])
-            PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['BtchBookgNode'])
-            PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['NbOfTxsNode'])
-            PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['CtrlSumNode'])
+            pmttypinf_has_content = False
+            if not self._config.get("domestic", False):
+                PmtInf_nodes["SvcLvlNode"].append(PmtInf_nodes["Cd_SvcLvl_Node"])
+                PmtInf_nodes["PmtTpInfNode"].append(PmtInf_nodes["SvcLvlNode"])
+                pmttypinf_has_content = True
+            if PmtInf_nodes['Cd_LclInstrm_Node'].text == "INST":
+                PmtInf_nodes['LclInstrmNode'].append(PmtInf_nodes['Cd_LclInstrm_Node'])
+                PmtInf_nodes['PmtTpInfNode'].append(PmtInf_nodes['LclInstrmNode'])
+                pmttypinf_has_content = True
+            if pmttypinf_has_content:
+                PmtInf_nodes["PmtInfNode"].append(PmtInf_nodes["PmtTpInfNode"])
+            if "ReqdExctnDtNode" in PmtInf_nodes:
+                if self.schema != "pain.001.001.03":
+                    PmtInf_nodes['ReqdExctnDtNode'].append(PmtInf_nodes['ReqdExctnDt_Dt_Node'])
+                PmtInf_nodes["PmtInfNode"].append(PmtInf_nodes["ReqdExctnDtNode"])
 
-            if not self._config.get('domestic', False):
-                PmtInf_nodes['SvcLvlNode'].append(PmtInf_nodes['Cd_SvcLvl_Node'])
-                PmtInf_nodes['PmtTpInfNode'].append(PmtInf_nodes['SvcLvlNode'])
-                PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['PmtTpInfNode'])
-            if 'ReqdExctnDtNode' in PmtInf_nodes:
-                PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ReqdExctnDtNode'])
+            PmtInf_nodes["DbtrNode"].append(PmtInf_nodes["Nm_Dbtr_Node"])
+            if len(PmtInf_nodes["PstlAdr_Dbtr_Node"]) > 0:
+                PmtInf_nodes["DbtrNode"].append(PmtInf_nodes["PstlAdr_Dbtr_Node"])
+            PmtInf_nodes["PmtInfNode"].append(PmtInf_nodes["DbtrNode"])
 
-            PmtInf_nodes['DbtrNode'].append(PmtInf_nodes['Nm_Dbtr_Node'])
-            if PmtInf_nodes['PstlAdr_Dbtr_Node']:
-                PmtInf_nodes['DbtrNode'].append(PmtInf_nodes['PstlAdr_Dbtr_Node'])
-            PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['DbtrNode'])
+            PmtInf_nodes["Id_DbtrAcct_Node"].append(PmtInf_nodes["IBAN_DbtrAcct_Node"])
+            PmtInf_nodes["DbtrAcctNode"].append(PmtInf_nodes["Id_DbtrAcct_Node"])
+            PmtInf_nodes["PmtInfNode"].append(PmtInf_nodes["DbtrAcctNode"])
 
-            PmtInf_nodes['Id_DbtrAcct_Node'].append(PmtInf_nodes['IBAN_DbtrAcct_Node'])
-            PmtInf_nodes['DbtrAcctNode'].append(PmtInf_nodes['Id_DbtrAcct_Node'])
-            PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['DbtrAcctNode'])
+            if "BIC" in self._config:
+                PmtInf_nodes["FinInstnId_DbtrAgt_Node"].append(
+                    PmtInf_nodes["BIC_DbtrAgt_Node"]
+                )
+            PmtInf_nodes["DbtrAgtNode"].append(PmtInf_nodes["FinInstnId_DbtrAgt_Node"])
+            PmtInf_nodes["PmtInfNode"].append(PmtInf_nodes["DbtrAgtNode"])
 
-            if 'BIC' in self._config:
-                PmtInf_nodes['FinInstnId_DbtrAgt_Node'].append(PmtInf_nodes['BIC_DbtrAgt_Node'])
-            PmtInf_nodes['DbtrAgtNode'].append(PmtInf_nodes['FinInstnId_DbtrAgt_Node'])
-            PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['DbtrAgtNode'])
-
-            PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ChrgBrNode'])
+            PmtInf_nodes["PmtInfNode"].append(PmtInf_nodes["ChrgBrNode"])
 
             for txnode in batch_nodes:
-                PmtInf_nodes['PmtInfNode'].append(txnode)
+                PmtInf_nodes["PmtInfNode"].append(txnode)
 
-            CstmrCdtTrfInitn_node = self._xml.find('CstmrCdtTrfInitn')
-            CstmrCdtTrfInitn_node.append(PmtInf_nodes['PmtInfNode'])
+            CstmrCdtTrfInitn_node = self._xml.find("CstmrCdtTrfInitn")
+            CstmrCdtTrfInitn_node.append(PmtInf_nodes["PmtInfNode"])

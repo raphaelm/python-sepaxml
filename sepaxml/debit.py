@@ -20,10 +20,11 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import datetime
+import re
 import xml.etree.ElementTree as ET
 
 from .shared import SepaPaymentInitn
-from .utils import ADDRESS_MAPPING, int_to_decimal_str, make_id
+from .utils import ADDRESS_MAPPING, int_to_decimal_str, make_id, validate_structured_description
 
 
 class SepaDD(SepaPaymentInitn):
@@ -66,16 +67,23 @@ class SepaDD(SepaPaymentInitn):
         encountered.
         """
         validation = ""
-        
-        # Don't allow both types of references
-        if 'description' in payment and 'structured_reference' in payment:
-            validation += "CANNOT_HAVE_BOTH_DESCRIPTION_AND_STRUCTURED_REFERENCE "
-        
-        # For backward compatibility: if structured_reference is not provided, description is required
-        # If structured_reference is provided, description becomes optional
-        if 'structured_reference' not in payment:
+
+        # Don't allow both types of descriptions
+        if 'description' in payment and 'structured_description' in payment:
+            validation += "CANNOT_HAVE_BOTH_DESCRIPTION_AND_STRUCTURED_DESCRIPTION "
+
+        # For backward compatibility: if structured_description is not provided, description is required
+        # If structured_description is provided, description becomes optional
+        if 'structured_description' not in payment:
             if 'description' not in payment:
                 validation += "DESCRIPTION_MISSING "
+        else:
+            # Validate structured description format if provided
+            ref_format = payment.get('structured_description_type', 'ISO')
+            try:
+                validate_structured_description(payment['structured_description'], ref_format)
+            except ValueError as e:
+                validation += str(e) + " "
 
         if not isinstance(payment['amount'], int):
             validation += "AMOUNT_NOT_INTEGER "
@@ -141,7 +149,7 @@ class SepaDD(SepaPaymentInitn):
             bic = False
 
         TX_nodes = self._create_TX_node(bic)
-        TX_nodes['InstdAmtNode'].set("Ccy", self._config['currency'])
+        TX_nodes['InstdAmtNode'].set("Ccy", payment.get('currency', self._config['currency']))
         TX_nodes['InstdAmtNode'].text = int_to_decimal_str(payment['amount'])
 
         TX_nodes['MndtIdNode'].text = payment['mandate_id']
@@ -165,21 +173,41 @@ class SepaDD(SepaPaymentInitn):
 
         TX_nodes['IBAN_DbtrAcct_Node'].text = payment['IBAN']
         
-        # Handle either structured or unstructured reference
+        # Handle either structured or unstructured description
         if 'description' in payment:
-            TX_nodes['UstrdNode'].text = payment['description']
-        elif 'structured_reference' in payment:
-            # Remove the UstrdNode
-            TX_nodes['RmtInfNode'].remove(TX_nodes['UstrdNode'])
-            
-            # Setup the structured reference elements
-            TX_nodes['RefNode'].text = payment['structured_reference']
-            TX_nodes['CdOrPrtryNode'].append(TX_nodes['CdNode'])
-            TX_nodes['TpNode'].append(TX_nodes['CdOrPrtryNode'])
-            TX_nodes['CdtrRefInfNode'].append(TX_nodes['TpNode'])
-            TX_nodes['CdtrRefInfNode'].append(TX_nodes['RefNode'])
-            TX_nodes['StrdNode'].append(TX_nodes['CdtrRefInfNode'])
-            TX_nodes['RmtInfNode'].append(TX_nodes['StrdNode'])
+            # Use unstructured description
+            ustrd_node = ET.Element('Ustrd')
+            ustrd_node.text = payment['description']
+            TX_nodes['RmtInfNode'].append(ustrd_node)
+        elif 'structured_description' in payment:
+            # Use structured description
+            strd_node = ET.Element('Strd')
+            cdtr_ref_inf_node = ET.Element('CdtrRefInf')
+            tp_node = ET.Element('Tp')
+            cd_or_prtry_node = ET.Element('CdOrPrtry')
+            cd_node = ET.Element('Cd')
+            cd_node.text = 'SCOR'
+
+            # Get the issuer from payment or default to 'BBA' for Belgian banks
+            issuer = payment.get('structured_description_issuer', 'BBA')
+            if issuer:  # Only add Issr node if issuer is specified
+                issr_node = ET.Element('Issr')
+                issr_node.text = issuer
+                tp_node.append(cd_or_prtry_node)
+                tp_node.append(issr_node)
+            else:
+                tp_node.append(cd_or_prtry_node)
+
+            # Clean structured description (remove formatting characters)
+            clean_ref = re.sub(r'[/+\s]', '', payment['structured_description'])
+            ref_node = ET.Element('Ref')
+            ref_node.text = clean_ref
+
+            cd_or_prtry_node.append(cd_node)
+            cdtr_ref_inf_node.append(tp_node)
+            cdtr_ref_inf_node.append(ref_node)
+            strd_node.append(cdtr_ref_inf_node)
+            TX_nodes['RmtInfNode'].append(strd_node)
             
         if not payment.get('endtoend_id', ''):
             payment['endtoend_id'] = make_id(self._config['name'])
@@ -259,7 +287,10 @@ class SepaDD(SepaPaymentInitn):
         ED['CdtrAgtNode'] = ET.Element("CdtrAgt")
         ED['FinInstnId_CdtrAgt_Node'] = ET.Element("FinInstnId")
         if 'BIC' in self._config:
-            ED['BIC_CdtrAgt_Node'] = ET.Element("BIC")
+            if self.schema != 'pain.008.001.02':
+                ED['BIC_CdtrAgt_Node'] = ET.Element("BICFI")
+            else:
+                ED['BIC_CdtrAgt_Node'] = ET.Element("BIC")
         else:
             ED['Othr_CdtrAgt_Node'] = ET.Element("Othr")
             ED['Id_CdtrAgt_Node'] = ET.Element("Id")
@@ -290,7 +321,10 @@ class SepaDD(SepaPaymentInitn):
         ED['DbtrAgtNode'] = ET.Element("DbtrAgt")
         ED['FinInstnId_DbtrAgt_Node'] = ET.Element("FinInstnId")
         if bic:
-            ED['BIC_DbtrAgt_Node'] = ET.Element("BIC")
+            if self.schema != 'pain.008.001.02':
+                ED['BIC_DbtrAgt_Node'] = ET.Element("BICFI")
+            else:
+                ED['BIC_DbtrAgt_Node'] = ET.Element("BIC")
         else:
             ED['Id_DbtrAgt_Node'] = ET.Element("Id")
             ED['Othr_DbtrAgt_Node'] = ET.Element("Othr")
@@ -301,16 +335,8 @@ class SepaDD(SepaPaymentInitn):
         ED['Id_DbtrAcct_Node'] = ET.Element("Id")
         ED['IBAN_DbtrAcct_Node'] = ET.Element("IBAN")
         ED['RmtInfNode'] = ET.Element("RmtInf")
-        ED['UstrdNode'] = ET.Element("Ustrd")
-        # Create nodes for structured reference
-        ED['StrdNode'] = ET.Element("Strd")
-        ED['CdtrRefInfNode'] = ET.Element("CdtrRefInf")
-        ED['TpNode'] = ET.Element("Tp")
-        ED['CdOrPrtryNode'] = ET.Element("CdOrPrtry")
-        ED['CdNode'] = ET.Element("Cd")
-        ED['RefNode'] = ET.Element("Ref")
-        # Set the default code
-        ED['CdNode'].text = "SCOR"
+        # We'll create UstrdNode or StrdNode elements on demand in add_payment
+        # instead of creating them here
         return ED
 
     def _add_non_batch(self, TX_nodes, PmtInf_nodes):
@@ -333,7 +359,7 @@ class SepaDD(SepaPaymentInitn):
         PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ReqdColltnDtNode'])
 
         PmtInf_nodes['CdtrNode'].append(PmtInf_nodes['Nm_Cdtr_Node'])
-        if PmtInf_nodes['PstlAdr_Cdtr_Node']:
+        if len(PmtInf_nodes['PstlAdr_Cdtr_Node']) > 0:
             PmtInf_nodes['CdtrNode'].append(PmtInf_nodes['PstlAdr_Cdtr_Node'])
         PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['CdtrNode'])
 
@@ -387,7 +413,7 @@ class SepaDD(SepaPaymentInitn):
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['DbtrAgtNode'])
 
         TX_nodes['DbtrNode'].append(TX_nodes['Nm_Dbtr_Node'])
-        if TX_nodes['PstlAdr_Dbtr_Node']:
+        if len(TX_nodes['PstlAdr_Dbtr_Node']) > 0:
             TX_nodes['DbtrNode'].append(TX_nodes['PstlAdr_Dbtr_Node'])
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['DbtrNode'])
 
@@ -395,7 +421,6 @@ class SepaDD(SepaPaymentInitn):
         TX_nodes['DbtrAcctNode'].append(TX_nodes['Id_DbtrAcct_Node'])
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['DbtrAcctNode'])
 
-        TX_nodes['RmtInfNode'].append(TX_nodes['UstrdNode'])
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['RmtInfNode'])
         PmtInf_nodes['PmtInfNode'].append(TX_nodes['DrctDbtTxInfNode'])
         CstmrDrctDbtInitn_node = self._xml.find('CstmrDrctDbtInitn')
@@ -428,7 +453,7 @@ class SepaDD(SepaPaymentInitn):
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['DbtrAgtNode'])
 
         TX_nodes['DbtrNode'].append(TX_nodes['Nm_Dbtr_Node'])
-        if TX_nodes['PstlAdr_Dbtr_Node']:
+        if len(TX_nodes['PstlAdr_Dbtr_Node']) > 0:
             TX_nodes['DbtrNode'].append(TX_nodes['PstlAdr_Dbtr_Node'])
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['DbtrNode'])
 
@@ -436,7 +461,6 @@ class SepaDD(SepaPaymentInitn):
         TX_nodes['DbtrAcctNode'].append(TX_nodes['Id_DbtrAcct_Node'])
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['DbtrAcctNode'])
 
-        TX_nodes['RmtInfNode'].append(TX_nodes['UstrdNode'])
         TX_nodes['DrctDbtTxInfNode'].append(TX_nodes['RmtInfNode'])
         self._add_to_batch_list(TX_nodes, payment)
 
@@ -518,7 +542,7 @@ class SepaDD(SepaPaymentInitn):
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ReqdColltnDtNode'])
 
             PmtInf_nodes['CdtrNode'].append(PmtInf_nodes['Nm_Cdtr_Node'])
-            if PmtInf_nodes['PstlAdr_Cdtr_Node']:
+            if len(PmtInf_nodes['PstlAdr_Cdtr_Node']) > 0:
                 PmtInf_nodes['CdtrNode'].append(PmtInf_nodes['PstlAdr_Cdtr_Node'])
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['CdtrNode'])
 

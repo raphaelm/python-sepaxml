@@ -111,6 +111,117 @@ def decimal_str_to_int(decimal_string):
     return int(int_string)
 
 
+def validate_structured_description(description, format_type='ISO'):
+    """
+    Validate a structured communication description.
+
+    @param description: The structured description string
+    @param format_type: The format type ('BBA' for Belgian format, 'ISO' for ISO 11649 RF creditor reference, or None to skip validation)
+    @return: True if valid, raises ValueError if invalid
+    """
+    # Skip validation if format_type is None or not recognized
+    if format_type not in ('BBA', 'ISO'):
+        return True
+
+    if format_type == 'BBA':
+        return _validate_bba_description(description)
+
+    if format_type == 'ISO':
+        return _validate_iso11649_description(description)
+
+
+def _validate_bba_description(description):
+    """
+    Validate Belgian BBA structured description.
+
+    BBA format: 12 digits in format XXX/XXXX/XXXCC where CC is check digit (modulo 97)
+
+    @param description: The structured description string
+    @return: True if valid, raises ValueError if invalid
+    """
+    # Remove any formatting characters (/, +, spaces)
+    clean_ref = re.sub(r'[/+\s]', '', description)
+
+    # Must be exactly 12 digits
+    if not re.match(r'^\d{12}$', clean_ref):
+        raise ValueError(
+            f"STRUCTURED_DESCRIPTION_INVALID: BBA format requires exactly 12 digits, got '{description}'. "
+            f"Format should be XXX/XXXX/XXXCC or 12 consecutive digits."
+        )
+
+    # Validate modulo 97 check digit
+    # For BBA format, the check digit is calculated as: 97 - (base_number % 97)
+    # If result is 0, use 97
+    base_number = int(clean_ref[:10])
+    check_digit = int(clean_ref[10:12])
+    remainder = base_number % 97
+    expected_check = 97 - remainder if remainder != 0 else 97
+
+    if check_digit != expected_check:
+        raise ValueError(
+            f"STRUCTURED_DESCRIPTION_INVALID_CHECKSUM: Check digit should be {expected_check:02d}, got {check_digit:02d}"
+        )
+
+    return True
+
+
+def _validate_iso11649_description(description):
+    """
+    Validate ISO 11649 RF creditor reference format for structured description.
+
+    ISO 11649 format: RF + 2 check digits + up to 21 alphanumeric characters (max 25 total)
+    Format: RFnn + creditor reference (where nn is the check digit)
+
+    @param description: The structured description string
+    @return: True if valid, raises ValueError if invalid
+    """
+    clean_ref = description.replace(' ', '').upper()
+
+    # Must start with RF
+    if not clean_ref.startswith('RF'):
+        raise ValueError(
+            f"STRUCTURED_DESCRIPTION_INVALID: ISO 11649 format must start with 'RF', got '{description}'"
+        )
+
+    # Must be between 4 and 25 characters (RF + 2 check digits + at least 0 and max 21 chars)
+    if len(clean_ref) < 4 or len(clean_ref) > 25:
+        raise ValueError(
+            f"STRUCTURED_DESCRIPTION_INVALID: ISO 11649 format must be 4-25 characters, got {len(clean_ref)} characters"
+        )
+
+    # Check that positions 3-4 are digits (check digits)
+    if not clean_ref[2:4].isdigit():
+        raise ValueError(
+            f"STRUCTURED_DESCRIPTION_INVALID: ISO 11649 check digits (positions 3-4) must be numeric, got '{clean_ref[2:4]}'"
+        )
+
+    # Check that the description part contains only alphanumeric characters
+    ref_part = clean_ref[4:]
+    if ref_part and not re.match(r'^[A-Z0-9]+$', ref_part):
+        raise ValueError(
+            f"STRUCTURED_DESCRIPTION_INVALID: ISO 11649 description must contain only alphanumeric characters, got '{ref_part}'"
+        )
+
+    # Validate modulo 97 check digit (same algorithm as IBAN)
+    # Move RF and check digits to end, convert letters to numbers, calculate mod 97
+    rearranged = clean_ref[4:] + clean_ref[:4]
+    # Convert letters to numbers (A=10, B=11, ..., Z=35)
+    numeric_string = ''
+    for char in rearranged:
+        if char.isdigit():
+            numeric_string += char
+        else:
+            numeric_string += str(ord(char) - ord('A') + 10)
+
+    checksum = int(numeric_string) % 97
+    if checksum != 1:
+        raise ValueError(
+            f"STRUCTURED_DESCRIPTION_INVALID_CHECKSUM: ISO 11649 checksum validation failed for '{description}'"
+        )
+
+    return True
+
+
 ADDRESS_MAPPING = (
     ("address_type", "AdrTp"),
     ("department", "Dept"),

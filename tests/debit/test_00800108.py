@@ -3,26 +3,24 @@ import datetime
 import pytest
 
 from sepaxml import SepaDD
+from sepaxml.validation import ValidationError
 from tests.utils import clean_ids, validate_xml
 
 
 @pytest.fixture
 def sdd():
-    return SepaDD(
-        {
-            "name": "TestCreditor",
-            "IBAN": "NL50BANK1234567890",
-            "BIC": "BANKNL2A",
-            "batch": True,
-            "creditor_id": "DE26ZZZ00000000000",
-            "currency": "EUR",
-        },
-        schema="pain.008.001.02",
-    )
+    return SepaDD({
+        "name": "TestCreditor",
+        "IBAN": "NL50BANK1234567890",
+        "BIC": "BANKNL2A",
+        "batch": True,
+        "creditor_id": "DE26ZZZ00000000000",
+        "currency": "EUR"
+    }, schema="pain.008.001.08")
 
 
 SAMPLE_RESULT = b"""
-<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.001.02" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.001.08" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <CstmrDrctDbtInitn>
     <GrpHdr>
       <MsgId>20012017014921-ba2dab283fdd</MsgId>
@@ -66,7 +64,7 @@ SAMPLE_RESULT = b"""
       </CdtrAcct>
       <CdtrAgt>
         <FinInstnId>
-          <BIC>BANKNL2A</BIC>
+          <BICFI>BANKNL2A</BICFI>
         </FinInstnId>
       </CdtrAgt>
       <ChrgBr>SLEV</ChrgBr>
@@ -95,7 +93,7 @@ SAMPLE_RESULT = b"""
         </DrctDbtTx>
         <DbtrAgt>
           <FinInstnId>
-            <BIC>BANKNL2A</BIC>
+            <BICFI>BANKNL2A</BICFI>
           </FinInstnId>
         </DbtrAgt>
         <Dbtr>
@@ -137,7 +135,7 @@ SAMPLE_RESULT = b"""
       </CdtrAcct>
       <CdtrAgt>
         <FinInstnId>
-          <BIC>BANKNL2A</BIC>
+          <BICFI>BANKNL2A</BICFI>
         </FinInstnId>
       </CdtrAgt>
       <ChrgBr>SLEV</ChrgBr>
@@ -166,7 +164,7 @@ SAMPLE_RESULT = b"""
         </DrctDbtTx>
         <DbtrAgt>
           <FinInstnId>
-            <BIC>BANKNL2A</BIC>
+            <BICFI>BANKNL2A</BICFI>
           </FinInstnId>
         </DbtrAgt>
         <Dbtr>
@@ -197,7 +195,7 @@ def test_two_debits(sdd):
         "collection_date": datetime.date.today(),
         "mandate_id": "1234",
         "mandate_date": datetime.date.today(),
-        "description": "Test transaction1",
+        "description": "Test transaction1"
     }
     payment2 = {
         "name": "Test du Test",
@@ -208,11 +206,11 @@ def test_two_debits(sdd):
         "collection_date": datetime.date.today(),
         "mandate_id": "1234",
         "mandate_date": datetime.date.today(),
-        "description": "Test transaction2",
+        "description": "Test transaction2"
     }
 
     sdd.add_payment(payment1)
     sdd.add_payment(payment2)
     xmlout = sdd.export()
-    xmlpretty = validate_xml(xmlout, "pain.008.001.02")
-    assert clean_ids(xmlpretty.strip()) == clean_ids(SAMPLE_RESULT.strip())
+    xmlpretty = validate_xml(xmlout, "pain.008.001.08")
+    assert clean_ids(xmlpretty.strip()).decode() == clean_ids(SAMPLE_RESULT.strip()).decode()
