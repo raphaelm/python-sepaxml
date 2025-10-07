@@ -51,7 +51,7 @@ class SepaPaymentInitn:
 
                 self._config['name'] = unidecode(self._config['name'])[:70]
 
-                if self._config['msg_id']:
+                if self._config.get('msg_id'):
                     self.msg_id = self._config['msg_id'][:35]
 
         self._prepare_document()
