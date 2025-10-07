@@ -3,6 +3,7 @@ import datetime
 import pytest
 
 from sepaxml import SepaDD
+from sepaxml.validation import ValidationError
 from tests.utils import clean_ids, validate_xml
 
 
@@ -15,11 +16,11 @@ def sdd():
         "batch": True,
         "creditor_id": "DE26ZZZ00000000000",
         "currency": "EUR"
-    }, schema="pain.008.002.02")
+    }, schema="pain.008.001.10")
 
 
 SAMPLE_RESULT = b"""
-<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.002.02" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.001.10" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <CstmrDrctDbtInitn>
     <GrpHdr>
       <MsgId>20012017014921-ba2dab283fdd</MsgId>
@@ -63,7 +64,7 @@ SAMPLE_RESULT = b"""
       </CdtrAcct>
       <CdtrAgt>
         <FinInstnId>
-          <BIC>BANKNL2A</BIC>
+          <BICFI>BANKNL2A</BICFI>
         </FinInstnId>
       </CdtrAgt>
       <ChrgBr>SLEV</ChrgBr>
@@ -92,7 +93,7 @@ SAMPLE_RESULT = b"""
         </DrctDbtTx>
         <DbtrAgt>
           <FinInstnId>
-            <BIC>BANKNL2A</BIC>
+            <BICFI>BANKNL2A</BICFI>
           </FinInstnId>
         </DbtrAgt>
         <Dbtr>
@@ -134,7 +135,7 @@ SAMPLE_RESULT = b"""
       </CdtrAcct>
       <CdtrAgt>
         <FinInstnId>
-          <BIC>BANKNL2A</BIC>
+          <BICFI>BANKNL2A</BICFI>
         </FinInstnId>
       </CdtrAgt>
       <ChrgBr>SLEV</ChrgBr>
@@ -163,7 +164,7 @@ SAMPLE_RESULT = b"""
         </DrctDbtTx>
         <DbtrAgt>
           <FinInstnId>
-            <BIC>BANKNL2A</BIC>
+            <BICFI>BANKNL2A</BICFI>
           </FinInstnId>
         </DbtrAgt>
         <Dbtr>
@@ -211,5 +212,5 @@ def test_two_debits(sdd):
     sdd.add_payment(payment1)
     sdd.add_payment(payment2)
     xmlout = sdd.export()
-    xmlpretty = validate_xml(xmlout, "pain.008.002.02")
-    assert clean_ids(xmlpretty.strip()) == clean_ids(SAMPLE_RESULT.strip())
+    xmlpretty = validate_xml(xmlout, "pain.008.001.10")
+    assert clean_ids(xmlpretty.strip()).decode() == clean_ids(SAMPLE_RESULT.strip()).decode()

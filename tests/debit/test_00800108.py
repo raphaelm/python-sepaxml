@@ -2,9 +2,9 @@ import datetime
 
 import pytest
 
-from sepadd import SepaDD
-
-from ..utils import clean_ids, validate_xml
+from sepaxml import SepaDD
+from sepaxml.validation import ValidationError
+from tests.utils import clean_ids, validate_xml
 
 
 @pytest.fixture
@@ -12,19 +12,19 @@ def sdd():
     return SepaDD({
         "name": "TestCreditor",
         "IBAN": "NL50BANK1234567890",
-        # "BIC": "BANKNL2A",
+        "BIC": "BANKNL2A",
         "batch": True,
         "creditor_id": "DE26ZZZ00000000000",
         "currency": "EUR"
-    }, schema="pain.008.003.02")
+    }, schema="pain.008.001.08")
 
 
 SAMPLE_RESULT = b"""
-<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.003.02" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.001.08" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <CstmrDrctDbtInitn>
     <GrpHdr>
-      <MsgId>20191217075410-036b6e1fee52</MsgId>
-      <CreDtTm>2019-12-17T19:54:10</CreDtTm>
+      <MsgId>20012017014921-ba2dab283fdd</MsgId>
+      <CreDtTm>2017-01-20T13:49:21</CreDtTm>
       <NbOfTxs>2</NbOfTxs>
       <CtrlSum>60.12</CtrlSum>
       <InitgPty>
@@ -39,7 +39,7 @@ SAMPLE_RESULT = b"""
       </InitgPty>
     </GrpHdr>
     <PmtInf>
-      <PmtInfId>TestCreditor-a58f80b99a79</PmtInfId>
+      <PmtInfId>TestCreditor-ecd6a2f680ce</PmtInfId>
       <PmtMtd>DD</PmtMtd>
       <BtchBookg>true</BtchBookg>
       <NbOfTxs>1</NbOfTxs>
@@ -53,7 +53,7 @@ SAMPLE_RESULT = b"""
         </LclInstrm>
         <SeqTp>FRST</SeqTp>
       </PmtTpInf>
-      <ReqdColltnDt>2019-12-17</ReqdColltnDt>
+      <ReqdColltnDt>2017-01-20</ReqdColltnDt>
       <Cdtr>
         <Nm>TestCreditor</Nm>
       </Cdtr>
@@ -64,9 +64,7 @@ SAMPLE_RESULT = b"""
       </CdtrAcct>
       <CdtrAgt>
         <FinInstnId>
-          <Othr>
-            <Id>NOTPROVIDED</Id>
-          </Othr>
+          <BICFI>BANKNL2A</BICFI>
         </FinInstnId>
       </CdtrAgt>
       <ChrgBr>SLEV</ChrgBr>
@@ -84,20 +82,18 @@ SAMPLE_RESULT = b"""
       </CdtrSchmeId>
       <DrctDbtTxInf>
         <PmtId>
-          <EndToEndId>TestCreditor-bec7e631a080</EndToEndId>
+          <EndToEndId>TestCreditor-4431989789fb</EndToEndId>
         </PmtId>
         <InstdAmt Ccy="EUR">10.12</InstdAmt>
         <DrctDbtTx>
           <MndtRltdInf>
             <MndtId>1234</MndtId>
-            <DtOfSgntr>2019-12-17</DtOfSgntr>
+            <DtOfSgntr>2017-01-20</DtOfSgntr>
           </MndtRltdInf>
         </DrctDbtTx>
         <DbtrAgt>
           <FinInstnId>
-            <Othr>
-              <Id>NOTPROVIDED</Id>
-            </Othr>
+            <BICFI>BANKNL2A</BICFI>
           </FinInstnId>
         </DbtrAgt>
         <Dbtr>
@@ -114,7 +110,7 @@ SAMPLE_RESULT = b"""
       </DrctDbtTxInf>
     </PmtInf>
     <PmtInf>
-      <PmtInfId>TestCreditor-ccc7e3929426</PmtInfId>
+      <PmtInfId>TestCreditor-d547a1b3882f</PmtInfId>
       <PmtMtd>DD</PmtMtd>
       <BtchBookg>true</BtchBookg>
       <NbOfTxs>1</NbOfTxs>
@@ -128,7 +124,7 @@ SAMPLE_RESULT = b"""
         </LclInstrm>
         <SeqTp>RCUR</SeqTp>
       </PmtTpInf>
-      <ReqdColltnDt>2019-12-17</ReqdColltnDt>
+      <ReqdColltnDt>2017-01-20</ReqdColltnDt>
       <Cdtr>
         <Nm>TestCreditor</Nm>
       </Cdtr>
@@ -139,9 +135,7 @@ SAMPLE_RESULT = b"""
       </CdtrAcct>
       <CdtrAgt>
         <FinInstnId>
-          <Othr>
-            <Id>NOTPROVIDED</Id>
-          </Othr>
+          <BICFI>BANKNL2A</BICFI>
         </FinInstnId>
       </CdtrAgt>
       <ChrgBr>SLEV</ChrgBr>
@@ -159,20 +153,18 @@ SAMPLE_RESULT = b"""
       </CdtrSchmeId>
       <DrctDbtTxInf>
         <PmtId>
-          <EndToEndId>TestCreditor-88a20e682fe3</EndToEndId>
+          <EndToEndId>TestCreditor-7e989083e265</EndToEndId>
         </PmtId>
         <InstdAmt Ccy="EUR">50.00</InstdAmt>
         <DrctDbtTx>
           <MndtRltdInf>
             <MndtId>1234</MndtId>
-            <DtOfSgntr>2019-12-17</DtOfSgntr>
+            <DtOfSgntr>2017-01-20</DtOfSgntr>
           </MndtRltdInf>
         </DrctDbtTx>
         <DbtrAgt>
           <FinInstnId>
-            <Othr>
-              <Id>NOTPROVIDED</Id>
-            </Othr>
+            <BICFI>BANKNL2A</BICFI>
           </FinInstnId>
         </DbtrAgt>
         <Dbtr>
@@ -197,6 +189,7 @@ def test_two_debits(sdd):
     payment1 = {
         "name": "Test von Testenstein",
         "IBAN": "NL50BANK1234567890",
+        "BIC": "BANKNL2A",
         "amount": 1012,
         "type": "FRST",
         "collection_date": datetime.date.today(),
@@ -207,6 +200,7 @@ def test_two_debits(sdd):
     payment2 = {
         "name": "Test du Test",
         "IBAN": "NL50BANK1234567890",
+        "BIC": "BANKNL2A",
         "amount": 5000,
         "type": "RCUR",
         "collection_date": datetime.date.today(),
@@ -217,7 +211,6 @@ def test_two_debits(sdd):
 
     sdd.add_payment(payment1)
     sdd.add_payment(payment2)
-    xmlout = sdd.export(validate=False)
-
-    xmlpretty = validate_xml(xmlout, "pain.008.003.02")
-    assert clean_ids(xmlpretty.strip()) == clean_ids(SAMPLE_RESULT.strip())
+    xmlout = sdd.export()
+    xmlpretty = validate_xml(xmlout, "pain.008.001.08")
+    assert clean_ids(xmlpretty.strip()).decode() == clean_ids(SAMPLE_RESULT.strip()).decode()

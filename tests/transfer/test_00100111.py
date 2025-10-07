@@ -14,11 +14,11 @@ def strf():
         "BIC": "BANKNL2A",
         "batch": True,
         "currency": "EUR"
-    }, schema="pain.001.003.03")
+    }, schema="pain.001.001.11")
 
 
 SAMPLE_RESULT = b"""
-<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.003.03" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.11" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <CstmrCdtTrfInitn>
     <GrpHdr>
       <MsgId>20180724040432-d24ce3b3e284</MsgId>
@@ -40,7 +40,9 @@ SAMPLE_RESULT = b"""
           <Cd>SEPA</Cd>
         </SvcLvl>
       </PmtTpInf>
-      <ReqdExctnDt>2018-07-24</ReqdExctnDt>
+      <ReqdExctnDt>
+        <Dt>2018-07-24</Dt>
+      </ReqdExctnDt>
       <Dbtr>
         <Nm>TestCreditor</Nm>
       </Dbtr>
@@ -51,7 +53,7 @@ SAMPLE_RESULT = b"""
       </DbtrAcct>
       <DbtrAgt>
         <FinInstnId>
-          <BIC>BANKNL2A</BIC>
+          <BICFI>BANKNL2A</BICFI>
         </FinInstnId>
       </DbtrAgt>
       <ChrgBr>SLEV</ChrgBr>
@@ -64,7 +66,7 @@ SAMPLE_RESULT = b"""
         </Amt>
         <CdtrAgt>
           <FinInstnId>
-            <BIC>BANKNL2A</BIC>
+            <BICFI>BANKNL2A</BICFI>
           </FinInstnId>
         </CdtrAgt>
         <Cdtr>
@@ -88,7 +90,7 @@ SAMPLE_RESULT = b"""
         </Amt>
         <CdtrAgt>
           <FinInstnId>
-            <BIC>BANKNL2A</BIC>
+            <BICFI>BANKNL2A</BICFI>
           </FinInstnId>
         </CdtrAgt>
         <Cdtr>
@@ -130,5 +132,5 @@ def test_two_debits(strf):
     strf.add_payment(payment1)
     strf.add_payment(payment2)
     xmlout = strf.export()
-    xmlpretty = validate_xml(xmlout, "pain.001.003.03")
-    assert clean_ids(xmlpretty.strip()) == clean_ids(SAMPLE_RESULT.strip())
+    xmlpretty = validate_xml(xmlout, "pain.001.001.11")
+    assert clean_ids(xmlpretty.strip()).decode() == clean_ids(SAMPLE_RESULT.strip()).decode()

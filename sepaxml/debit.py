@@ -1,3 +1,24 @@
+"""
+Copyright (c) 2014 Congressus, The Netherlands
+Copyright (c) 2017-2023 Raphael Michel and contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is furnished
+to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"""
 import datetime
 import xml.etree.ElementTree as ET
 
@@ -11,7 +32,7 @@ class SepaDD(SepaPaymentInitn):
     """
     root_el = "CstmrDrctDbtInitn"
 
-    def __init__(self, config, schema="pain.008.003.02", clean=True):
+    def __init__(self, config, schema="pain.008.001.02", clean=True):
         if "instrument" not in config:
             config["instrument"] = "CORE"
         super().__init__(config, schema, clean)
@@ -25,7 +46,7 @@ class SepaDD(SepaPaymentInitn):
         """
         validation = ""
         required = ["name", "IBAN", "batch", "creditor_id", "currency"]
-        if self.schema == 'pain.008.001.02' or self.schema == 'pain.008.002.02':
+        if self.schema == 'pain.008.001.02':
             required += ["BIC"]
 
         for config_item in required:
@@ -109,7 +130,7 @@ class SepaDD(SepaPaymentInitn):
             bic = False
 
         TX_nodes = self._create_TX_node(bic)
-        TX_nodes['InstdAmtNode'].set("Ccy", self._config['currency'])
+        TX_nodes['InstdAmtNode'].set("Ccy", payment.get('currency', self._config['currency']))
         TX_nodes['InstdAmtNode'].text = int_to_decimal_str(payment['amount'])
 
         TX_nodes['MndtIdNode'].text = payment['mandate_id']
@@ -216,7 +237,10 @@ class SepaDD(SepaPaymentInitn):
         ED['CdtrAgtNode'] = ET.Element("CdtrAgt")
         ED['FinInstnId_CdtrAgt_Node'] = ET.Element("FinInstnId")
         if 'BIC' in self._config:
-            ED['BIC_CdtrAgt_Node'] = ET.Element("BIC")
+            if self.schema != 'pain.008.001.02':
+                ED['BIC_CdtrAgt_Node'] = ET.Element("BICFI")
+            else:
+                ED['BIC_CdtrAgt_Node'] = ET.Element("BIC")
         else:
             ED['Othr_CdtrAgt_Node'] = ET.Element("Othr")
             ED['Id_CdtrAgt_Node'] = ET.Element("Id")
@@ -262,7 +286,10 @@ class SepaDD(SepaPaymentInitn):
         ED['DbtrAgtNode'] = ET.Element("DbtrAgt")
         ED['FinInstnId_DbtrAgt_Node'] = ET.Element("FinInstnId")
         if bic:
-            ED['BIC_DbtrAgt_Node'] = ET.Element("BIC")
+            if self.schema != 'pain.008.001.02':
+                ED['BIC_DbtrAgt_Node'] = ET.Element("BICFI")
+            else:
+                ED['BIC_DbtrAgt_Node'] = ET.Element("BIC")
         else:
             ED['Id_DbtrAgt_Node'] = ET.Element("Id")
             ED['Othr_DbtrAgt_Node'] = ET.Element("Othr")
@@ -342,7 +369,7 @@ class SepaDD(SepaPaymentInitn):
         if 'BIC_DbtrAgt_Node' in TX_nodes and TX_nodes['BIC_DbtrAgt_Node'].text is not None:
             TX_nodes['FinInstnId_DbtrAgt_Node'].append(
                 TX_nodes['BIC_DbtrAgt_Node'])
-        elif self.schema != 'pain.008.001.02' and self.schema != 'pain.008.002.02':
+        else:
             TX_nodes['Othr_DbtrAgt_Node'].append(
                 TX_nodes['Id_DbtrAgt_Node'])
             TX_nodes['FinInstnId_DbtrAgt_Node'].append(
@@ -384,7 +411,7 @@ class SepaDD(SepaPaymentInitn):
         if 'BIC_DbtrAgt_Node' in TX_nodes and TX_nodes['BIC_DbtrAgt_Node'].text is not None:
             TX_nodes['FinInstnId_DbtrAgt_Node'].append(
                 TX_nodes['BIC_DbtrAgt_Node'])
-        elif self.schema != 'pain.008.001.02' and self.schema != 'pain.008.002.02':
+        else:
             TX_nodes['Othr_DbtrAgt_Node'].append(
                 TX_nodes['Id_DbtrAgt_Node'])
             TX_nodes['FinInstnId_DbtrAgt_Node'].append(

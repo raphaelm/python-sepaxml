@@ -1,16 +1,15 @@
 pypi:
+    image:
+        name: pretix/ci-image
     script:
-        - cp /keys/.pypirc ~/.pypirc
-        - virtualenv env
-        - source env/bin/activate
-        - XDG_CACHE_HOME=/cache pip3 install -U pip setuptools wheel
-        - XDG_CACHE_HOME=/cache pip3 install -r requirements_dev.txt
-        - python setup.py sdist develop
-        - python setup.py sdist clean
-        - python setup.py sdist upload
-        - python setup.py bdist_wheel upload
-    tags:
-        - python3
+        - cat $PYPIRC > ~/.pypirc
+        - pip install -U pip uv
+        - uv pip install --system -U wheel setuptools
+        - uv pip install --system -Ur requirements_dev.txt
+        - python setup.py develop
+        - python setup.py sdist bdist_wheel
+        - twine check dist/*
+        - twine upload dist/*
     only:
         - pypi
     artifacts:

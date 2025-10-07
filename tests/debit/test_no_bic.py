@@ -92,7 +92,11 @@ SAMPLE_RESULT = b"""
           </MndtRltdInf>
         </DrctDbtTx>
         <DbtrAgt>
-          <FinInstnId/>
+          <FinInstnId>
+            <Othr>
+              <Id>NOTPROVIDED</Id>
+            </Othr>
+          </FinInstnId>
         </DbtrAgt>
         <Dbtr>
           <Nm>Test von Testenstein</Nm>
@@ -161,7 +165,11 @@ SAMPLE_RESULT = b"""
           </MndtRltdInf>
         </DrctDbtTx>
         <DbtrAgt>
-          <FinInstnId/>
+          <FinInstnId>
+            <Othr>
+              <Id>NOTPROVIDED</Id>
+            </Othr>
+          </FinInstnId>
         </DbtrAgt>
         <Dbtr>
           <Nm>Test du Test</Nm>

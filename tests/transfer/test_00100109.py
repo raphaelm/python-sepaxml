@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 import datetime
 
 import pytest
@@ -11,40 +9,42 @@ from tests.utils import clean_ids, validate_xml
 @pytest.fixture
 def strf():
     return SepaTransfer({
-        "name": "Miller & Son Ltd",
+        "name": "TestCreditor",
         "IBAN": "NL50BANK1234567890",
         "BIC": "BANKNL2A",
         "batch": True,
         "currency": "EUR"
-    }, schema="pain.001.001.03")
+    }, schema="pain.001.001.09")
 
 
 SAMPLE_RESULT = b"""
-<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.09" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <CstmrCdtTrfInitn>
     <GrpHdr>
-      <MsgId>20180724041136-3b840ce62087</MsgId>
-      <CreDtTm>2018-07-24T16:11:36</CreDtTm>
+      <MsgId>20180724040432-d24ce3b3e284</MsgId>
+      <CreDtTm>2018-07-24T16:04:32</CreDtTm>
       <NbOfTxs>2</NbOfTxs>
-      <CtrlSum>20.24</CtrlSum>
+      <CtrlSum>60.12</CtrlSum>
       <InitgPty>
-        <Nm>Miller &amp; Son Ltd</Nm>
+        <Nm>TestCreditor</Nm>
       </InitgPty>
     </GrpHdr>
     <PmtInf>
-      <PmtInfId>MillerSonLtd-67c22f433a9e</PmtInfId>
+      <PmtInfId>TestCreditor-90102652f82a</PmtInfId>
       <PmtMtd>TRF</PmtMtd>
       <BtchBookg>true</BtchBookg>
       <NbOfTxs>2</NbOfTxs>
-      <CtrlSum>20.24</CtrlSum>
+      <CtrlSum>60.12</CtrlSum>
       <PmtTpInf>
         <SvcLvl>
           <Cd>SEPA</Cd>
         </SvcLvl>
       </PmtTpInf>
-      <ReqdExctnDt>2018-07-24</ReqdExctnDt>
+      <ReqdExctnDt>
+        <Dt>2018-07-24</Dt>
+      </ReqdExctnDt>
       <Dbtr>
-        <Nm>Miller &amp; Son Ltd</Nm>
+        <Nm>TestCreditor</Nm>
       </Dbtr>
       <DbtrAcct>
         <Id>
@@ -53,20 +53,20 @@ SAMPLE_RESULT = b"""
       </DbtrAcct>
       <DbtrAgt>
         <FinInstnId>
-          <BIC>BANKNL2A</BIC>
+          <BICFI>BANKNL2A</BICFI>
         </FinInstnId>
       </DbtrAgt>
       <ChrgBr>SLEV</ChrgBr>
       <CdtTrfTxInf>
         <PmtId>
-          <EndToEndId>ebd75e7e649375d91b33dc11ae44c0e1</EndToEndId>
+          <EndToEndId>NOTPROVIDED</EndToEndId>
         </PmtId>
         <Amt>
           <InstdAmt Ccy="EUR">10.12</InstdAmt>
         </Amt>
         <CdtrAgt>
           <FinInstnId>
-            <BIC>BANKNL2A</BIC>
+            <BICFI>BANKNL2A</BICFI>
           </FinInstnId>
         </CdtrAgt>
         <Cdtr>
@@ -83,18 +83,18 @@ SAMPLE_RESULT = b"""
       </CdtTrfTxInf>
       <CdtTrfTxInf>
         <PmtId>
-          <EndToEndId>af755a40cb692551ed9f9d55f7179525</EndToEndId>
+          <EndToEndId>NOTPROVIDED</EndToEndId>
         </PmtId>
         <Amt>
-          <InstdAmt Ccy="EUR">10.12</InstdAmt>
+          <InstdAmt Ccy="EUR">50.00</InstdAmt>
         </Amt>
         <CdtrAgt>
           <FinInstnId>
-            <BIC>BANKNL2A</BIC>
+            <BICFI>BANKNL2A</BICFI>
           </FinInstnId>
         </CdtrAgt>
         <Cdtr>
-          <Nm>Test von Testenstein</Nm>
+          <Nm>Test du Test</Nm>
         </Cdtr>
         <CdtrAcct>
           <Id>
@@ -102,7 +102,7 @@ SAMPLE_RESULT = b"""
           </Id>
         </CdtrAcct>
         <RmtInf>
-          <Ustrd>Test transaction1</Ustrd>
+          <Ustrd>Test transaction2</Ustrd>
         </RmtInf>
       </CdtTrfTxInf>
     </PmtInf>
@@ -113,7 +113,6 @@ SAMPLE_RESULT = b"""
 
 def test_two_debits(strf):
     payment1 = {
-        "endtoend_id": "ebd75e7e649375d91b33dc11ae44c0e1",
         "name": "Test von Testenstein",
         "IBAN": "NL50BANK1234567890",
         "BIC": "BANKNL2A",
@@ -122,17 +121,16 @@ def test_two_debits(strf):
         "description": "Test transaction1"
     }
     payment2 = {
-        "name": "Test von Testenstein",
+        "name": "Test du Test",
         "IBAN": "NL50BANK1234567890",
         "BIC": "BANKNL2A",
-        "amount": 1012,
+        "amount": 5000,
         "execution_date": datetime.date.today(),
-        "description": "Test transaction1",
-        "endtoend_id": "af755a40cb692551ed9f9d55f7179525"
+        "description": "Test transaction2"
     }
 
     strf.add_payment(payment1)
     strf.add_payment(payment2)
     xmlout = strf.export()
-    xmlpretty = validate_xml(xmlout, "pain.001.001.03")
-    assert clean_ids(xmlpretty.strip()) == clean_ids(SAMPLE_RESULT.strip())
+    xmlpretty = validate_xml(xmlout, "pain.001.001.09")
+    assert clean_ids(xmlpretty.strip()).decode() == clean_ids(SAMPLE_RESULT.strip()).decode()
