@@ -91,6 +91,7 @@ SAMPLE_RESULT = b"""
           <MndtRltdInf>
             <MndtId>1234</MndtId>
             <DtOfSgntr>2017-01-20</DtOfSgntr>
+            <AmdmntInd>false</AmdmntInd>
           </MndtRltdInf>
         </DrctDbtTx>
         <DbtrAgt>

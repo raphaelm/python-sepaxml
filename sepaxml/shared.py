@@ -51,6 +51,9 @@ class SepaPaymentInitn:
 
                 self._config['name'] = unidecode(self._config['name'])[:70]
 
+                if self._config.get('msg_id'):
+                    self.msg_id = self._config['msg_id'][:35]
+
         self._prepare_document()
         self._create_header()
 
@@ -114,7 +117,7 @@ class SepaPaymentInitn:
         if pretty_print:
             from xml.dom import minidom
             out_minidom = minidom.parseString(out)
-            out = out_minidom.toprettyxml(encoding="utf-8")
+            out = out_minidom.toprettyxml(encoding="UTF-8")
 
         if validate:
             try_valid_xml(out, self.schema)
