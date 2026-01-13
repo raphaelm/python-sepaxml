@@ -164,6 +164,84 @@ def test_two_debits(strf):
     assert clean_ids(xmlpretty.strip()) == clean_ids(SAMPLE_RESULT.strip())
 
 
+SAMPLE_RESULT_WITH_ADDRESS = b"""
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <CstmrCdtTrfInitn>
+    <GrpHdr>
+      <MsgId>20260113041500-135e7321ab20</MsgId>
+      <CreDtTm>2026-01-13T16:15:00</CreDtTm>
+      <NbOfTxs>1</NbOfTxs>
+      <CtrlSum>10.12</CtrlSum>
+      <InitgPty>
+        <Nm>TestCreditor</Nm>
+      </InitgPty>
+    </GrpHdr>
+    <PmtInf>
+      <PmtInfId>TestCreditor-5c372d141200</PmtInfId>
+      <PmtMtd>TRF</PmtMtd>
+      <BtchBookg>false</BtchBookg>
+      <NbOfTxs>1</NbOfTxs>
+      <CtrlSum>10.12</CtrlSum>
+      <PmtTpInf>
+        <SvcLvl>
+          <Cd>SEPA</Cd>
+        </SvcLvl>
+      </PmtTpInf>
+      <ReqdExctnDt>2026-01-13</ReqdExctnDt>
+      <Dbtr>
+        <Nm>TestCreditor</Nm>
+        <PstlAdr>
+          <Ctry>DE</Ctry>
+          <AdrLine>Line 1</AdrLine>
+          <AdrLine>Line 2</AdrLine>
+        </PstlAdr>
+      </Dbtr>
+      <DbtrAcct>
+        <Id>
+          <IBAN>NL50BANK1234567890</IBAN>
+        </Id>
+      </DbtrAcct>
+      <DbtrAgt>
+        <FinInstnId>
+          <BIC>BANKNL2A</BIC>
+        </FinInstnId>
+      </DbtrAgt>
+      <ChrgBr>SLEV</ChrgBr>
+      <CdtTrfTxInf>
+        <PmtId>
+          <EndToEndId>ebd75e7e649375d91b33dc11ae44c0e1</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="EUR">10.12</InstdAmt>
+        </Amt>
+        <CdtrAgt>
+          <FinInstnId>
+            <BIC>BANKNL2A</BIC>
+          </FinInstnId>
+        </CdtrAgt>
+        <Cdtr>
+          <Nm>Test von Testenstein</Nm>
+          <PstlAdr>
+            <Ctry>DE</Ctry>
+            <AdrLine>Line 1</AdrLine>
+            <AdrLine>Line 2</AdrLine>
+          </PstlAdr>
+        </Cdtr>
+        <CdtrAcct>
+          <Id>
+            <IBAN>NL50BANK1234567890</IBAN>
+          </Id>
+        </CdtrAcct>
+        <RmtInf>
+          <Ustrd>Test transaction1</Ustrd>
+        </RmtInf>
+      </CdtTrfTxInf>
+    </PmtInf>
+  </CstmrCdtTrfInitn>
+</Document>
+"""
+
+
 def test_sepa_address(strf):
     config = {
         "name": "TestCreditor",
@@ -191,3 +269,7 @@ def test_sepa_address(strf):
     }
     strf = SepaTransfer(config)
     strf.add_payment(payment1)
+    xmlout = strf.export()
+    xmlpretty = validate_xml(xmlout, "pain.001.001.03")
+    print(xmlpretty.decode())
+    assert clean_ids(xmlpretty.strip()) == clean_ids(SAMPLE_RESULT_WITH_ADDRESS.strip())
