@@ -99,6 +99,7 @@ Example:
         },
         # "initiating_party": "John Doe", # optional name of the initiator of the payment, required by some banks. default to ''name'
         # "initiating_party_id": "DE26ZZZ00000000002", # optional, supplied by your bank or financial authority. default to 'creditor_id'
+        # "previous_IBAN": "NL49BANK0987654321", #  in the event of bank mobility, use this field to provide previous IBAN or fill it with the value "SMNDA"
     }
     sepa.add_payment(payment)
 
