@@ -99,7 +99,7 @@ class SepaDD(SepaPaymentInitn):
         self.check_payment(payment)
 
         # Get the CstmrDrctDbtInitnNode
-        if not self._config['batch']:
+        if self._transaction_splitting:
             # Start building the non batch payment
             PmtInf_nodes = self._create_PmtInf_node()
             PmtInf_nodes['PmtInfIdNode'].text = make_id(self._config['name'])
@@ -159,10 +159,10 @@ class SepaDD(SepaPaymentInitn):
             payment['endtoend_id'] = make_id(self._config['name'])
         TX_nodes['EndToEndIdNode'].text = payment['endtoend_id'][:35]
 
-        if self._config['batch']:
-            self._add_batch(TX_nodes, payment)
-        else:
+        if self._transaction_splitting:
             self._add_non_batch(TX_nodes, PmtInf_nodes)
+        else:
+            self._add_batch(TX_nodes, payment)
 
     def _create_header(self):
         """
@@ -464,7 +464,7 @@ class SepaDD(SepaPaymentInitn):
             PmtInf_nodes = self._create_PmtInf_node()
             PmtInf_nodes['PmtInfIdNode'].text = make_id(self._config['name'])
             PmtInf_nodes['PmtMtdNode'].text = "DD"
-            PmtInf_nodes['BtchBookgNode'].text = "true"
+            PmtInf_nodes['BtchBookgNode'].text = str(self._config['batch']).lower()
             PmtInf_nodes['Cd_SvcLvl_Node'].text = "SEPA"
             PmtInf_nodes['Cd_LclInstrm_Node'].text = self._config['instrument']
             PmtInf_nodes['SeqTpNode'].text = batch_meta_split[0]
