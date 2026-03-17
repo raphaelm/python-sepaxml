@@ -160,7 +160,6 @@ def test_two_debits(strf):
     strf.add_payment(payment2)
     xmlout = strf.export()
     xmlpretty = validate_xml(xmlout, "pain.001.001.03")
-    print(xmlpretty.decode())
     assert clean_ids(xmlpretty.strip()) == clean_ids(SAMPLE_RESULT.strip())
 
 

@@ -45,6 +45,7 @@ Example:
         "IBAN": "NL50BANK1234567890",
         "BIC": "BANKNL2A",
         "batch": True,
+        # "split_transactions": True, # optional, split transactions into different payments when batch booking is disabled. Default is 'True'. See https://github.com/raphaelm/python-sepaxml/issues/53
         "creditor_id": "DE26ZZZ00000000000",  # supplied by your bank or financial authority
         "currency": "EUR",  # ISO 4217
         # "instrument": "B2B",  # - default is CORE (B2C)
@@ -121,6 +122,7 @@ Example:
         "IBAN": "NL50BANK1234567890",
         "BIC": "BANKNL2A",
         "batch": True,
+        # "split_transactions": True, # optional, split transactions into different payments when batch booking is disabled. Default is 'True'. See https://github.com/raphaelm/python-sepaxml/issues/53
         # For non-SEPA transfers, set "domestic" to True, necessary e.g. for CH/LI
         "currency": "EUR",  # ISO 4217
         "address": {

@@ -96,7 +96,7 @@ class SepaTransfer(SepaPaymentInitn):
             payment['description'] = unidecode(payment['description'])[:140]
 
         # Get the CstmrDrctDbtInitnNode
-        if not self._config['batch']:
+        if self._transaction_splitting:
             # Start building the non batch payment
             PmtInf_nodes = self._create_PmtInf_node()
             PmtInf_nodes['PmtInfIdNode'].text = make_id(self._config['name'])
@@ -160,10 +160,10 @@ class SepaTransfer(SepaPaymentInitn):
         TX_nodes['IBAN_CdtrAcct_Node'].text = payment['IBAN']
         TX_nodes['UstrdNode'].text = payment['description']
 
-        if self._config['batch']:
-            self._add_batch(TX_nodes, payment)
-        else:
+        if self._transaction_splitting:
             self._add_non_batch(TX_nodes, PmtInf_nodes)
+        else:
+            self._add_batch(TX_nodes, payment)
 
     def _create_header(self):
         """
@@ -397,7 +397,7 @@ class SepaTransfer(SepaPaymentInitn):
             PmtInf_nodes = self._create_PmtInf_node()
             PmtInf_nodes['PmtInfIdNode'].text = make_id(self._config['name'])
             PmtInf_nodes['PmtMtdNode'].text = "TRF"
-            PmtInf_nodes['BtchBookgNode'].text = "true"
+            PmtInf_nodes['BtchBookgNode'].text = str(self._config['batch']).lower()
             if not self._config.get('domestic', False):
                 PmtInf_nodes['Cd_SvcLvl_Node'].text = "SEPA"
 

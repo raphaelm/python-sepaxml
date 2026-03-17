@@ -54,6 +54,8 @@ class SepaPaymentInitn:
                 if self._config.get('msg_id'):
                     self.msg_id = self._config['msg_id'][:35]
 
+        self._transaction_splitting = self._config.get('split_transactions', True) and not self._config['batch']
+
         self._prepare_document()
         self._create_header()
 

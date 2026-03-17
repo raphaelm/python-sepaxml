@@ -24,8 +24,8 @@ SAMPLE_RESULT = b"""
     <GrpHdr>
       <MsgId>20012017014921-ba2dab283fdd</MsgId>
       <CreDtTm>2017-01-20T13:49:21</CreDtTm>
-      <NbOfTxs>2</NbOfTxs>
-      <CtrlSum>60.12</CtrlSum>
+      <NbOfTxs>3</NbOfTxs>
+      <CtrlSum>103.33</CtrlSum>
       <InitgPty>
         <Nm>TestCreditor</Nm>
         <Id>
@@ -122,7 +122,7 @@ SAMPLE_RESULT = b"""
         <LclInstrm>
           <Cd>CORE</Cd>
         </LclInstrm>
-        <SeqTp>RCUR</SeqTp>
+        <SeqTp>FRST</SeqTp>
       </PmtTpInf>
       <ReqdColltnDt>2017-01-20</ReqdColltnDt>
       <Cdtr>
@@ -181,6 +181,78 @@ SAMPLE_RESULT = b"""
         </RmtInf>
       </DrctDbtTxInf>
     </PmtInf>
+    <PmtInf>
+      <PmtInfId>TestCreditor-d547a1b3882f</PmtInfId>
+      <PmtMtd>DD</PmtMtd>
+      <BtchBookg>false</BtchBookg>
+      <NbOfTxs>1</NbOfTxs>
+      <CtrlSum>43.21</CtrlSum>
+      <PmtTpInf>
+        <SvcLvl>
+          <Cd>SEPA</Cd>
+        </SvcLvl>
+        <LclInstrm>
+          <Cd>CORE</Cd>
+        </LclInstrm>
+        <SeqTp>RCUR</SeqTp>
+      </PmtTpInf>
+      <ReqdColltnDt>2017-01-20</ReqdColltnDt>
+      <Cdtr>
+        <Nm>TestCreditor</Nm>
+      </Cdtr>
+      <CdtrAcct>
+        <Id>
+          <IBAN>NL50BANK1234567890</IBAN>
+        </Id>
+      </CdtrAcct>
+      <CdtrAgt>
+        <FinInstnId>
+          <BIC>BANKNL2A</BIC>
+        </FinInstnId>
+      </CdtrAgt>
+      <ChrgBr>SLEV</ChrgBr>
+      <CdtrSchmeId>
+        <Id>
+          <PrvtId>
+            <Othr>
+              <Id>DE26ZZZ00000000000</Id>
+              <SchmeNm>
+                <Prtry>SEPA</Prtry>
+              </SchmeNm>
+            </Othr>
+          </PrvtId>
+        </Id>
+      </CdtrSchmeId>
+      <DrctDbtTxInf>
+        <PmtId>
+          <EndToEndId>TestCreditor-7e989083e265</EndToEndId>
+        </PmtId>
+        <InstdAmt Ccy="EUR">43.21</InstdAmt>
+        <DrctDbtTx>
+          <MndtRltdInf>
+            <MndtId>1234</MndtId>
+            <DtOfSgntr>2017-01-20</DtOfSgntr>
+            <AmdmntInd>false</AmdmntInd>
+          </MndtRltdInf>
+        </DrctDbtTx>
+        <DbtrAgt>
+          <FinInstnId>
+            <BIC>BANKNL2A</BIC>
+          </FinInstnId>
+        </DbtrAgt>
+        <Dbtr>
+          <Nm>Test du Test 2</Nm>
+        </Dbtr>
+        <DbtrAcct>
+          <Id>
+            <IBAN>NL50BANK1234567890</IBAN>
+          </Id>
+        </DbtrAcct>
+        <RmtInf>
+          <Ustrd>Test transaction3</Ustrd>
+        </RmtInf>
+      </DrctDbtTxInf>
+    </PmtInf>
   </CstmrDrctDbtInitn>
 </Document>
 """
@@ -203,15 +275,27 @@ def test_two_debits(sdd):
         "IBAN": "NL50BANK1234567890",
         "BIC": "BANKNL2A",
         "amount": 5000,
-        "type": "RCUR",
+        "type": "FRST",
         "collection_date": datetime.date.today(),
         "mandate_id": "1234",
         "mandate_date": datetime.date.today(),
         "description": "Test transaction2"
     }
+    payment3 = {
+        "name": "Test du Test 2",
+        "IBAN": "NL50BANK1234567890",
+        "BIC": "BANKNL2A",
+        "amount": 4321,
+        "type": "RCUR",
+        "collection_date": datetime.date.today(),
+        "mandate_id": "1234",
+        "mandate_date": datetime.date.today(),
+        "description": "Test transaction3"
+    }
 
     sdd.add_payment(payment1)
     sdd.add_payment(payment2)
+    sdd.add_payment(payment3)
     xmlout = sdd.export()
     xmlpretty = validate_xml(xmlout, "pain.008.001.02")
     assert clean_ids(xmlpretty.strip()) == clean_ids(SAMPLE_RESULT.strip())
