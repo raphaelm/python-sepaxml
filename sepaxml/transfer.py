@@ -108,6 +108,8 @@ class SepaTransfer(SepaPaymentInitn):
             )
             if not self._config.get('domestic', False):
                 PmtInf_nodes['Cd_SvcLvl_Node'].text = "SEPA"
+                if self._config.get('instant', False):
+                    PmtInf_nodes['Cd_LclInstrm_Node'].text = "INST"
             if 'execution_date' in payment:
                 if self.schema == "pain.001.001.03":
                     PmtInf_nodes['ReqdExctnDtNode'].text = payment['execution_date']
@@ -226,6 +228,9 @@ class SepaTransfer(SepaPaymentInitn):
         if not self._config.get('domestic', False):
             ED['SvcLvlNode'] = ET.Element("SvcLvl")
             ED['Cd_SvcLvl_Node'] = ET.Element("Cd")
+            if self._config.get('instant', False):
+                ED['LclInstrmNode'] = ET.Element("LclInstrm")
+                ED['Cd_LclInstrm_Node'] = ET.Element("Cd")
         ED['ReqdExctnDtNode'] = ET.Element("ReqdExctnDt")
         ED['ReqdExctnDt_Dt_Node'] = ET.Element("Dt")
 
@@ -287,6 +292,9 @@ class SepaTransfer(SepaPaymentInitn):
         if not self._config.get('domestic', False):
             PmtInf_nodes['SvcLvlNode'].append(PmtInf_nodes['Cd_SvcLvl_Node'])
             PmtInf_nodes['PmtTpInfNode'].append(PmtInf_nodes['SvcLvlNode'])
+            if self._config.get('instant', False):
+                PmtInf_nodes['LclInstrmNode'].append(PmtInf_nodes['Cd_LclInstrm_Node'])
+                PmtInf_nodes['PmtTpInfNode'].append(PmtInf_nodes['LclInstrmNode'])
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['PmtTpInfNode'])
         if 'ReqdExctnDtNode' in PmtInf_nodes:
             PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ReqdExctnDtNode'])
@@ -400,6 +408,8 @@ class SepaTransfer(SepaPaymentInitn):
             PmtInf_nodes['BtchBookgNode'].text = "true"
             if not self._config.get('domestic', False):
                 PmtInf_nodes['Cd_SvcLvl_Node'].text = "SEPA"
+                if self._config.get('instant', False):
+                    PmtInf_nodes['Cd_LclInstrm_Node'].text = "INST"
 
             if batch_meta:
                 if self.schema == "pain.001.001.03":
@@ -438,6 +448,9 @@ class SepaTransfer(SepaPaymentInitn):
             if not self._config.get('domestic', False):
                 PmtInf_nodes['SvcLvlNode'].append(PmtInf_nodes['Cd_SvcLvl_Node'])
                 PmtInf_nodes['PmtTpInfNode'].append(PmtInf_nodes['SvcLvlNode'])
+                if self._config.get('instant', False):
+                    PmtInf_nodes['LclInstrmNode'].append(PmtInf_nodes['Cd_LclInstrm_Node'])
+                    PmtInf_nodes['PmtTpInfNode'].append(PmtInf_nodes['LclInstrmNode'])
                 PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['PmtTpInfNode'])
             if 'ReqdExctnDtNode' in PmtInf_nodes:
                 PmtInf_nodes['PmtInfNode'].append(PmtInf_nodes['ReqdExctnDtNode'])
