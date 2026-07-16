@@ -122,6 +122,7 @@ Example:
         "BIC": "BANKNL2A",
         "batch": True,
         # For non-SEPA transfers, set "domestic" to True, necessary e.g. for CH/LI
+        # For SEPA Instant (SCT Inst / Echtzeitüberweisung), set "instant" to True
         "currency": "EUR",  # ISO 4217
         "address": {
             # The address and all of its fields are optional but in some countries they are required
