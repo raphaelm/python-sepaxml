@@ -21,6 +21,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
+from copy import copy, deepcopy
 
 from .utils import decimal_str_to_int, int_to_decimal_str, make_msg_id
 from .validation import try_valid_xml
@@ -84,25 +85,31 @@ class SepaPaymentInitn:
         Method to output the xml as string. It will finalize the batches and
         then calculate the checksums (amount sum and transaction count),
         fill these into the group header and output the XML.
+        Exporting repeatedly does not add payments or change the totals.
 
         @param pretty_print: uses Python's xml.dom.minidom.Node.toprettyxml to make it easier to read for humans
         """
-        self._finalize_batch()
+        # Finalization appends batches and fills the group totals. Keep those
+        # changes on a working document so exporting again starts from the
+        # original payments, including any added since the previous export.
+        document = copy(self)
+        document._xml = deepcopy(self._xml)
+        document._finalize_batch()
 
         ctrl_sum_total = 0
         nb_of_txs_total = 0
 
-        for ctrl_sum in self._xml.iter('CtrlSum'):
+        for ctrl_sum in document._xml.iter('CtrlSum'):
             if ctrl_sum.text is None:
                 continue
             ctrl_sum_total += decimal_str_to_int(ctrl_sum.text)
 
-        for nb_of_txs in self._xml.iter('NbOfTxs'):
+        for nb_of_txs in document._xml.iter('NbOfTxs'):
             if nb_of_txs.text is None:
                 continue
             nb_of_txs_total += int(nb_of_txs.text)
 
-        n = self._xml.find(self.root_el)
+        n = document._xml.find(self.root_el)
         GrpHdr_node = n.find('GrpHdr')
         CtrlSum_node = GrpHdr_node.find('CtrlSum')
         NbOfTxs_node = GrpHdr_node.find('NbOfTxs')
@@ -112,7 +119,7 @@ class SepaPaymentInitn:
         # Prepending the XML version is hacky, but cElementTree only offers this
         # automatically if you write to a file, which we don't necessarily want.
         out = b"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + ET.tostring(
-            self._xml, "utf-8")
+            document._xml, "utf-8")
 
         if pretty_print:
             from xml.dom import minidom
