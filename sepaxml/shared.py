@@ -79,6 +79,21 @@ class SepaPaymentInitn:
     def _finalize_batch(self):
         raise NotImplementedError()
 
+    def _create_address_node(self, tag, value):
+        node = ET.Element(tag)
+        if tag == "AdrTp" and self.schema in (
+            "pain.001.001.09",
+            "pain.001.001.10",
+            "pain.001.001.11",
+            "pain.008.001.08",
+            "pain.008.001.09",
+            "pain.008.001.10",
+        ):
+            ET.SubElement(node, "Cd").text = value
+        else:
+            node.text = value
+        return node
+
     def export(self, validate=True, pretty_print=False):
         """
         Method to output the xml as string. It will finalize the batches and

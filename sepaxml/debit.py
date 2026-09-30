@@ -145,8 +145,7 @@ class SepaDD(SepaPaymentInitn):
         if payment.get('address', {}):
             for d, n in ADDRESS_MAPPING:
                 if payment['address'].get(d):
-                    n = ET.Element(n)
-                    n.text = payment['address'][d]
+                    n = self._create_address_node(n, payment['address'][d])
                     TX_nodes['PstlAdr_Dbtr_Node'].append(n)
             for line in payment['address'].get('lines', []):
                 n = ET.Element('AdrLine')
@@ -473,8 +472,7 @@ class SepaDD(SepaPaymentInitn):
             if self._config.get('address', {}):
                 for d, n in ADDRESS_MAPPING:
                     if self._config['address'].get(d):
-                        n = ET.Element(n)
-                        n.text = self._config['address'][d]
+                        n = self._create_address_node(n, self._config['address'][d])
                         PmtInf_nodes['PstlAdr_Cdtr_Node'].append(n)
                 for line in self._config['address'].get('lines', []):
                     n = ET.Element('AdrLine')
